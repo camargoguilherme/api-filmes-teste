@@ -6,17 +6,10 @@ const fs = require('fs')
 const urlFile = './filmes.json';
 
 exports.parseHTML = (href) => {
-  let link = 'https://xilften.co/filme/assistir-o-ultimo-assalto-dublado-online/';
+  let link = 'https://xilften.co/filme/assistir-errementari-o-ferreiro-e-o-diabo-dublado-online/';
   getFilmes(link);
-
-  var filmes = '';
-  filmes = fs.readFileSync(urlFile, 'utf8', function (err,data) {
-      if (err) {
-        return console.error(err);
-      }
-      console.log('Readed!');
-      return JSON.parse(data);
-    });
+  
+  var filmes = JSON.parse(readFile(urlFile));
   return filmes;
 }
 
@@ -54,11 +47,8 @@ async function getFilmes() {
       filmes[i].img = aux.img;
     }
     
+    writeFile(urlFile, JSON.stringify(filmes));
 
-    fs.writeFileSync(urlFile, JSON.stringify(filmes),function (err) {
-      if (err) throw err;
-      console.log('Saved!');
-    });
     return filmes;
   } catch (error) {
     console.error(error);
@@ -72,13 +62,14 @@ async function getFilme(href) {
 
     const dom = new JSDOM(responseText);
     let uri = parse(dom.window.document.querySelector('.playex').innerHTML);
+    
     let res = parse(dom.window.document.querySelector('#info').innerHTML);
     //let img = parse(dom.window.document.querySelector('#olvideo').innerHTML);
     
     let filme = new Array();
     filme.resumo = res[1].children[0].children[0].content;
-    filme.img = await getImg(uri[0].children[1].attributes[1].value);
-    filme.uri = uri[0].children[1].attributes[1].value;
+    //filme.img = await getImgURL( uri[0].children[1].attributes[1].value );
+    //filme.uri = await getMovieURL( uri[0].children[1].attributes[1].value );
     uris = urlify(JSON.stringify(uri));
     return filme;
   } catch (error) {
@@ -86,14 +77,35 @@ async function getFilme(href) {
   }
 }
 
-async function getImg(href) {
+async function getImgURL(href) {
+  
   try {
     let response = await fetch(href);
     let responseText = await response.text();
 
+    //responseText = JSON.parse(readFileSync('teste.html')); 
+
     const dom = new JSDOM(responseText);
-    let img = parse(dom.window.document.querySelector('#videojs_html5_api').innerHTML);
-    uris = urlify(JSON.stringify(img));
+    let img = parse(dom.window.document.querySelector('#home_video').innerHTML);
+    let uris = urlify(JSON.stringify(img));
+    console.log('uri img: ' + uris)
+    return uris;
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+async function getMovieURL(href) {
+  try {
+    let response = await fetch(href);
+    let responseText = await response.text();
+
+    //responseText = JSON.parse(readFileSync('teste.html')); 
+
+    const dom = new JSDOM(responseText);
+    let img = parse(dom.window.document.querySelector('#home_video').innerHTML);
+    let uris = urlify(JSON.stringify(img));
+    console.log('uri img: ' + uris)
     return uris;
   } catch (error) {
     console.error(error);
@@ -104,8 +116,29 @@ function urlify(text) {
   var urlRegex = /(((https?:\/\/)|(www\.))[^\s]+[(.jpg)|(.png)|(.mp4)]$)/g;
   //var urlRegex = /(https?:\/\/[^\s]+)/g;
   
-  let uri = ''+ text.match(urlRegex)
-  let uri2 = uri.substring(0,4+uri.search(/(.jpg)|(.png)|(.mp4)/g))
+  let aux = ''+ text.match(urlRegex)
+  aux = aux.substring(0,4+aux.search(/(.jpg)|(.png)|(.mp4)/g))
   console.log(text);
-  return uri2;
+  return aux;
+}
+
+function writeFile(path, data){
+  fs.writeFileSync(path, data,function (err) {
+      if (err) throw err;
+      console.log('Saved!');
+  });
+}
+
+function readFile(path){
+  let data;
+  if(fs.existsSync(path)){
+    data = fs.readFileSync(path, 'utf8', function (err,data) {
+      if (err) {
+        console.error(err);
+        return err;
+      }
+      return data;
+    });
+  }
+  return data;
 }

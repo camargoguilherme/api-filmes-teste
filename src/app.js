@@ -10,6 +10,6 @@ const parseRoute = require('./routes/parseRoute');
 app.use(bodyParser.json()); // support json encoded bodies
 app.use(bodyParser.urlencoded({ extended: true })); // support encoded bodies
 app.use('/', index);
-app.use('/filmes', parseRoute);
+app.use('/', parseRoute);
 
 module.exports = app;
