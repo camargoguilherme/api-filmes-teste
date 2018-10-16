@@ -17,7 +17,7 @@ exports.getSeries = (req, res, next) => {
 exports.getTemporadas = async (req, res, next) => {  
   let link = req.body.link;
   let serie = req.body.serie;
-
+  console.log('getTemporadas\n link: '+link+ '\nserie: '+serie )
   let temporadas =  await parseSeries.getTemporadas(link, serie);
   res.status(200).send(
     JSON.parse(temporadas)   

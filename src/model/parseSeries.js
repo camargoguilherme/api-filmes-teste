@@ -17,9 +17,9 @@ exports.getSeries = (href) => {
   return series;
 }
 
-exports.getTemporadas = async (link, path) => {
-  path = './temporadas/' + path + '.json';
-  await getTemporadas(link, path)
+exports.getTemporadas = (link, path) => {
+  path = `./temporadas/${ path }.json`;
+  getTemporadas(link, path)
   let temporada = readFile(path);
   return temporada;
 }
@@ -36,23 +36,16 @@ async function getSeries(link) {
     console.log(json.length)
     for(i=1; i < json.length; i++){
       
-      let id = ''
       let titulo = json[i].children[1].children[0].attributes[0].value;
-      let uri = ''
       let uriPage = json[i].children[1].attributes[0].value;
-      let img = ''
       let posterStart = json[i].children[1].children[0].attributes[1].value;
-      let urlFileTemporada = titulo.replace(/( )/g, '_');
+      let urlFileTemporada = titulo.replace(/\W+/g, '_');
       //await getTemporadas(uriPage, 'temporadas/'+urlFileTemporada+'.json')
       serie = {
-        // id
-        id: id,
-        // Titulo do Filme
+        // Titulo da Serie
         titulo: titulo.replace('Assistir', '').trim(),
-        uri: uri,
-        // Link para o filme
+        // Link para Serie
         uriPage: uriPage,
-        img: img,
         // Link para poster
         posterStart: posterStart,
         path : urlFileTemporada
@@ -88,12 +81,13 @@ async function getTemporadas(href, path) {
     uri = uri.replace(/(Episódio)/g, ',{ "titulo":"Episódio');
     uri = uri.replace(/(\[,{+)/g, '[{');
     uri = uri.replace(/(: <a href="[/])/g, '", "link":"'+link);
-    uri = uri.replace(/(>)/g, ', "dublado": "');
-    uri = uri.replace(/(DUBLADO)/g, 'DUBLADO"}');
-    uri = uri.replace(/(LEGENDADO)/g, 'LEGENDADO"}');
+    uri = uri.replace(/(>)/g, ', "dublado": ');
+    uri = uri.replace(/(DUBLADO)/g, 'true }');
+    uri = uri.replace(/(LEGENDADO)/g, 'false }');
     uri = uri.replace(/(, {+)/g, ']}, {');
     uri = '#' + uri.trim() + ']}]';
     uri = uri.replace(/(#]},)/g, '[');
+    uri = uri.replace(/(([0-9])+\W(Temporada))/g, '');
     json = JSON.stringify(uri);
 
     let temporadas = JSON.parse(json);
