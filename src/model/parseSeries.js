@@ -12,7 +12,7 @@ exports.getSeries = (href) => {
   getSeries(link);
   //getTemporadas(link2);
   //getMovieURL(link2);
-  var series = []//readFile(urlFile);
+  var series = readFile(urlFile);
   
   return series;
 }
