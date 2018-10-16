@@ -7,12 +7,12 @@ const urlFile = './series.json';
 
 exports.getSeries = (href) => {
   let link = 'https://tuaserie.com/';
-  let link2 = 'https://www.tuaserie.com/serie/assistir-serie-supernatural-online.html';
-  let link3 = 'https://www.tuaserie.com/772dc50246548d18';
+  let link2 = 'https://www.tuaserie.com/3151521e0c6f85fd';
+  let link3 = 'https://www.blogger.com/video-play.mp4?contentId=3151521e0c6f85fd';
   getSeries(link);
   //getTemporadas(link2);
-  //getMovieURL(link3);
-  var series = readFile(urlFile);
+  //getMovieURL(link2);
+  var series = []//readFile(urlFile);
   
   return series;
 }
@@ -87,7 +87,6 @@ async function getTemporadas(href, path) {
     uri = uri.replace(/(, {+)/g, ']}, {');
     uri = '#' + uri.trim() + ']}]';
     uri = uri.replace(/(#]},)/g, '[');
-    uri = uri.replace(/(([0-9])+\W(Temporada))/g, '');
     json = JSON.stringify(uri);
 
     let temporadas = JSON.parse(json);
@@ -118,8 +117,14 @@ async function getImgURL(href) {
 
 async function getMovieURL(href) {
   try {
+    console.log('\ngetMovieURL')
+    console.log('href: '+href)
     let response = await fetch(href);
+    console.log('response: '+JSON.stringify(response))
     let responseText = await response.text();
+
+    console.log('responseText: '+responseText)
+
     const dom = new JSDOM(responseText);
     let movieUrl = parse(dom.window.document.querySelector('#preview').innerHTML);
     let url = movieUrl[1].children[1].children[1].children[5].attributes[6].value;
