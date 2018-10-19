@@ -5,7 +5,7 @@ const {parse} = require('himalaya');
 const fs = require('fs')
 const urlFile = './filmes.json';
 
-exports.parseHTML = (href) => {
+exports.parseFilmes = (href) => {
   let link = 'https://xilften.co/filme/assistir-errementari-o-ferreiro-e-o-diabo-dublado-online/';
   getFilmes(link);
   
@@ -14,6 +14,7 @@ exports.parseHTML = (href) => {
 }
 
 async function getFilmes() {
+  console.log('getFilmes')
   try {
     let response = await fetch('https://xilften.co/filme/');
     let responseText = await response.text();
@@ -56,6 +57,7 @@ async function getFilmes() {
 }
 
 async function getFilme(href) {
+  console.log('getFilme')
   try {
     let response = await fetch(href);
     let responseText = await response.text();
@@ -68,8 +70,8 @@ async function getFilme(href) {
     
     let filme = new Array();
     filme.resumo = res[1].children[0].children[0].content;
-    //filme.img = await getImgURL( uri[0].children[1].attributes[1].value );
-    //filme.uri = await getMovieURL( uri[0].children[1].attributes[1].value );
+    filme.img = await getImgURL( uri[0].children[1].attributes[1].value );
+    filme.uri = await getMovieURL( uri[0].children[1].attributes[1].value );
     uris = urlify(JSON.stringify(uri));
     return filme;
   } catch (error) {
@@ -78,7 +80,7 @@ async function getFilme(href) {
 }
 
 async function getImgURL(href) {
-  
+  console.log('getImgURL')
   try {
     let response = await fetch(href);
     let responseText = await response.text();
@@ -96,6 +98,7 @@ async function getImgURL(href) {
 }
 
 async function getMovieURL(href) {
+  console.log('getMovieURL')
   try {
     let response = await fetch(href);
     let responseText = await response.text();
