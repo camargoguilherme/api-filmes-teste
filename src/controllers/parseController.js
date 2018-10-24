@@ -1,17 +1,31 @@
-const parseFilmes = require('../model/parseFilmes')
-const parseSeries = require('../model/parseSeries')
+const parseFilmes = require('../models/parseFilmes')
+const parseSeries = require('../models/parseSeries')
 
-exports.getFilmes = (req, res, next) => {  
+exports.getFilmes = async (req, res, next) => {  
   console.log('getFilmes')
+  let filmes =  await parseFilmes.getFilmes();
   res.status(200).send(
-    parseFilmes.parseFilmes()
+   filmes
   );
 };
 
-exports.getSeries = (req, res, next) => { 
-  console.log('getSeries') 
+
+exports.getFilme = async (req, res, next) => {  
+  let link = req.body.link;
+  let filme =  await parseFilmes.getFilme(link);
+  console.log(link)
   res.status(200).send(
-    parseSeries.getSeries()
+    filme   
+  );
+};
+
+
+
+exports.getSeries = async (req, res, next) => { 
+  console.log('getSeries')
+  let series = await parseSeries.getSeries(); 
+  res.status(200).send(
+    series
   );
 };
 
@@ -24,16 +38,16 @@ exports.getTemporadas = async (req, res, next) => {
   console.log('serie: '+serie )
   let temporadas =  await parseSeries.getTemporadas(link, serie);
   res.status(200).send(
-    JSON.parse(temporadas)   
+    temporadas   
   );
 };
 
 exports.getPreparar = (req, res, next) => { 
   console.log('getPreparar') 
-  let series = parseSeries.getSeries();
-  let temporadas = Array();
+  /*let series = parseSeries.getSeries();
+  let temporadas = Array();*/
   
   res.status(200).send(
-    series 
+    {"response":"teste"} 
   );
 };

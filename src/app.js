@@ -1,15 +1,62 @@
 const express = require('express');
 const app = express();
-const router = express.Router();
 const bodyParser = require('body-parser');
+var session = require('express-session');
+var MongoStore = require('connect-mongo')(session);
+var User = require('./models/userModel');
+
+// Configuring the database
+const dbConfig = require('./config/databaseConfig');
+const mongoose = require('mongoose');
+
+mongoose.Promise = global.Promise;
+
+// Connecting to the database
+mongoose.connect(dbConfig.urlExt, {
+    useNewUrlParser: true
+}).then(() => {
+    console.log("Successfully connected to the database");    
+}).catch(err => {
+    console.log('Could not connect to the database. Exiting now...', err);
+    process.exit();
+});
+
+var db = mongoose.connection;
+
+//handle mongo error
+db.on('error', console.error.bind(console, 'connection error:'));
+db.once('open', function () {
+  // we're connected!
+});
+
+//use sessions for tracking logins
+app.use(session({
+  secret: 'work hard',
+  resave: true,
+  saveUninitialized: false,
+  store: new MongoStore({
+    mongooseConnection: db
+  })
+}));
 
 //Rotas
 const index = require('./routes/index');
-const parseRoute = require('./routes/parseRoute');
+const parseRoutes = require('./routes/parseRoutes');
+const filmeRoutes = require('./routes/filmeRoutes');
+const serieRoutes = require('./routes/serieRoutes');
+const temporadaRoutes = require('./routes/temporadaRoutes');
+const userRoutes = require('./routes/userRoutes');
 
 app.use(bodyParser.json()); // support json encoded bodies
 app.use(bodyParser.urlencoded({ extended: true })); // support encoded bodies
-app.use('/', index);
-app.use('/', parseRoute);
+
+//prefix url
+const prefix = '/api/v1';
+app.use(prefix, index);
+app.use(prefix, parseRoutes);
+app.use(prefix, filmeRoutes);
+app.use(prefix, serieRoutes );
+app.use(prefix, temporadaRoutes);
+app.use(prefix, userRoutes);
 
 module.exports = app;
