@@ -52,6 +52,9 @@ app.use(bodyParser.urlencoded({ extended: true })); // support encoded bodies
 
 //prefix url
 const prefix = '/api/v1';
+app.get('/', function(req, res, next){
+  return res.redirect(prefix)
+})
 app.use(prefix, index);
 app.use(prefix, parseRoutes);
 app.use(prefix, filmeRoutes);
