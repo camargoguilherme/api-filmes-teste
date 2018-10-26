@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const temporadas = require('../controllers/temporadaController');
-const User = require('../models/userModel');
+var { isAdmin } = require('../auth/authServices');
 
 const prefix = '/temporadas';
 
@@ -9,41 +9,16 @@ const prefix = '/temporadas';
 router.get(prefix, temporadas.findAll);
 
 // Retrieve a single Temporada with temporadaId
-router.get(prefix+'/:serieId', temporadas.findOne);
+router.get(prefix+'/:serieId', isAdmin, temporadas.findOne);
 
-// Verifica se o usuario esta autenticado e se é admin
-router.use(prefix, function (req, res, next) {
-  User.findById(req.session.userId)
-  .exec(function (error, user) {
-    if (error) {
-      return next(error);
-    } else {
-      if (user === null) {
-        var err = new Error('Usuario não atenticado');
-        err.status = 400;
-        return next(err);
-      } else {
-        if(user.admin){
-          return next()
-        }else{
-          var err = new Error('Usuario não autorizado');
-        err.status = 400;
-        return next(err);
-        }
-                
-      }
-    }
-  });
-})
-
-
+// Verifica se usuario é admin
 // Create a new Temporada
-router.post('/temporadas', temporadas.create);
+router.post('/temporadas', isAdmin, temporadas.create);
 
 // Update a Temporada with temporadaId
-router.put(prefix+'/:temporadaId', temporadas.update);
+router.put(prefix+'/:temporadaId', isAdmin, temporadas.update);
 
 // Delete a Temporada with temporadaId
-router.delete(prefix+'/:temporadaId', temporadas.delete);
+router.delete(prefix+'/:temporadaId', isAdmin, temporadas.delete);
 
 module.exports = router;

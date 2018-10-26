@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const series = require('../controllers/serieController');
-const User = require('../models/userModel');
+var { isAdmin } = require('../auth/authServices');
 
 const prefix = '/series';
 
@@ -12,39 +12,14 @@ router.get(prefix, series.findAll);
 // Retrieve a single Serie with serieId
 router.get(prefix+'/:serieId', series.findOne);
 
-// Verifica se o usuario esta autenticado e se é admin
-router.use(prefix, function (req, res, next) {
-  User.findById(req.session.userId)
-  .exec(function (error, user) {
-    if (error) {
-      return next(error);
-    } else {
-      if (user === null) {
-        var err = new Error('Usuario não atenticado');
-        err.status = 400;
-        return next(err);
-      } else {
-        if(user.admin){
-          return next()
-        }else{
-          var err = new Error('Usuario não autorizado');
-        err.status = 400;
-        return next(err);
-        }
-                
-      }
-    }
-  });
-})
-
-
+// Verifica se o usuario é admin
 // Create a new Serie
-router.post(prefix, series.create);
+router.post(prefix, isAdmin, series.create);
 
 // Update a Serie with serieId
-router.put(prefix+'/:serieId', series.update);
+router.put(prefix+'/:serieId', isAdmin, series.update);
 
 // Delete a Serie with serieId
-router.delete(prefix+'/:serieId', series.delete);
+router.delete(prefix+'/:serieId', isAdmin, series.delete);
 
 module.exports = router;

@@ -3,7 +3,7 @@ const app = express();
 const bodyParser = require('body-parser');
 var session = require('express-session');
 var MongoStore = require('connect-mongo')(session);
-var User = require('./models/userModel');
+const { isAuthenticate } = require('./auth/authServices');
 
 // Configuring the database
 const dbConfig = require('./config/databaseConfig');
@@ -12,7 +12,7 @@ const mongoose = require('mongoose');
 mongoose.Promise = global.Promise;
 
 // Connecting to the database
-mongoose.connect(dbConfig.urlExt, {
+mongoose.connect(dbConfig.urlInt, {
     useNewUrlParser: true
 }).then(() => {
     console.log("Successfully connected to the database");    
@@ -40,7 +40,7 @@ app.use(session({
 }));
 
 //Rotas
-const index = require('./routes/index');
+const indexRoutes = require('./routes/indexRoutes');
 const parseRoutes = require('./routes/parseRoutes');
 const filmeRoutes = require('./routes/filmeRoutes');
 const serieRoutes = require('./routes/serieRoutes');
@@ -50,12 +50,17 @@ const userRoutes = require('./routes/userRoutes');
 app.use(bodyParser.json()); // support json encoded bodies
 app.use(bodyParser.urlencoded({ extended: true })); // support encoded bodies
 
+
+
 //prefix url
 const prefix = '/api/v1';
+
+app.use(isAuthenticate);
+
 app.get('/', function(req, res, next){
   return res.redirect(prefix)
 })
-app.use(prefix, index);
+app.use(prefix, indexRoutes);
 app.use(prefix, parseRoutes);
 app.use(prefix, filmeRoutes);
 app.use(prefix, serieRoutes );
