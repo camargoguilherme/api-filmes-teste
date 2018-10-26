@@ -6,13 +6,12 @@ var MongoStore = require('connect-mongo')(session);
 const { isAuthenticate } = require('./auth/authServices');
 
 // Configuring the database
-const dbConfig = require('./config/databaseConfig');
 const mongoose = require('mongoose');
 
 mongoose.Promise = global.Promise;
 
 // Connecting to the database
-mongoose.connect(process.env.URL || dbConfig.urlExt, {
+mongoose.connect(process.env.URL, {
     useNewUrlParser: true
 }).then(() => {
     console.log("Successfully connected to the database");    
