@@ -64,8 +64,8 @@ app.get(prefix, function (req, res, next) {
     version: "0.0.1"
   });
 });
-app.use(isAuthenticate);
 app.use(prefix, indexRoutes);
+app.use(isAuthenticate);
 app.use(prefix, parseRoutes);
 app.use(prefix, filmeRoutes);
 app.use(prefix, serieRoutes );
