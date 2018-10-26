@@ -55,11 +55,17 @@ app.use(bodyParser.urlencoded({ extended: true })); // support encoded bodies
 //prefix url
 const prefix = '/api/v1';
 
-app.use(isAuthenticate);
-
 app.get('/', function(req, res, next){
   return res.redirect(prefix)
 })
+
+app.get(prefix, function (req, res, next) {
+  res.status(200).send({
+    title: "Node Express API",
+    version: "0.0.1"
+  });
+});
+app.use(isAuthenticate);
 app.use(prefix, indexRoutes);
 app.use(prefix, parseRoutes);
 app.use(prefix, filmeRoutes);
