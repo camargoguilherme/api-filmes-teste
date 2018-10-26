@@ -1,5 +1,4 @@
 var User = require('../models/userModel');
-var config = require('../config/config');
 var jwt = require('jsonwebtoken');
 
 //Verifica se usuario esta autenticado
