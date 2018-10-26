@@ -12,7 +12,7 @@ const mongoose = require('mongoose');
 mongoose.Promise = global.Promise;
 
 // Connecting to the database
-mongoose.connect(dbConfig.urlInt, {
+mongoose.connect(process.env.URL || dbConfig.urlExt, {
     useNewUrlParser: true
 }).then(() => {
     console.log("Successfully connected to the database");    
