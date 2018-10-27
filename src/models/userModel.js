@@ -48,6 +48,7 @@ UserSchema.methods = {
   },  
   toJson() {
     return {
+      auth: true,
       _id: this._id,
       username: this.username,
       token: this.createToken()

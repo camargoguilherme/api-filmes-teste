@@ -12,7 +12,7 @@ router.get(prefix, filmes.findAll);
 router.get(prefix+'/:filmeId', filmes.findOne);
 
 // Create a new Movie
-router.post(prefix, isAdmin, filmes.create);
+//router.post(prefix, isAdmin, filmes.create);
 
 // Update a Movie with filmeId
 router.put(prefix+'/:filmeId', isAdmin, filmes.update);

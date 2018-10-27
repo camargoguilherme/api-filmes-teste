@@ -5,12 +5,13 @@ var jwt = require('jsonwebtoken');
 exports.authenticate = (req, res, done) => {
   let username = req.body.username;
   let password = req.body.password;
+  console.log(req.body)
   User.findOne({ username: username })
     .exec(function (err, user) {
       if (err) {
         return done(err)
       } else if (!user) {
-        var err = new Error('Usuário não encontrado');
+        var err = new Error({message: 'Erro ao realizar login, usuário não encontrado'});
         err.status = 401;
         return done(err);
       }
@@ -46,7 +47,7 @@ exports.isAdmin = (req, res, callback) => {
   if (!token) 
     return res.status(401).send({ auth: false, message: 'Nenhum token fornecido' });
   
-  jwt.verify(token, process.env.JWT_WORD || config.secret, function(err, decoded) {
+  jwt.verify(token, process.env.JWT_WORD , function(err, decoded) {
     console.log(decoded)
     if (err) 
       return res.status(500).send({ auth: false, message: 'Falha ao autenticar token' });
@@ -55,8 +56,8 @@ exports.isAdmin = (req, res, callback) => {
       if (err) {
         return callback(err)
       } else if (!user) {
-        var err = new Error('Usuário não encontrado');
-        err.status = 401;
+        /*var err = new Error('Usuário não encontrado');
+        err.status = 401;*/
         return callback(err);
       }
       if (user.admin) {

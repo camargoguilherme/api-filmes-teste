@@ -1,10 +1,22 @@
 const { Router } = require('express');
 const router = new Router();
 var User = require('../models/userModel');
-var jwt = require('jsonwebtoken');
+var jwt = require('jsonwebtoken');  
 var { isAuthenticate, authenticate } = require('../auth/authServices');
 
-
+//POST route for updating data
+router.get('/authenticated', (req, res, next) =>{
+  var token = req.headers['x-access-token'];
+  if (!token) 
+    return res.status(401).send({ auth: false, message: 'Nenhum token fornecido' });
+  
+  jwt.verify(token, process.env.JWT_WORD, function(err, decoded) {
+    if (err) 
+      return res.status(500).send({ auth: false, message: 'Falha ao autenticar token' });
+    //res.status(200).send(decoded);
+    res.status(200).send({ auth: true, token: token });
+  });
+});
 
 //POST route for updating data
 router.post('/login', authenticate);

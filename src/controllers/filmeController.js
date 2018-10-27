@@ -1,50 +1,54 @@
 const Filme = require('../models/filmeModel');
 
-// Create and Save a new Note
+// Create and Save a new Movie
 exports.create = (req, res) => {
     // Validate request
-    if(!req.body.content) {
+    if(!req.body.filme) {
         return res.status(400).send({
-            message: "Note content can not be empty"
+            message: "Informações do filmes nao podem estar vazias"
         });
     }
 
-    // Create a Note
+    // Create a Movie
     const filme = new Filme({
-        title: req.body.title || "Untitled Note", 
-        content: req.body.content
+      titulo: '',
+      posterStart: '',
+      uriPage: '',
+      uri: '',
+      resumo: '',
+      img: '',
     });
 
-    // Save Note in the database
+    // Save Movie in the database
     filme.save()
     .then(data => {
         res.send(data);
     }).catch(err => {
         res.status(500).send({
-            message: err.message || "Some error occurred while creating the Note."
+            message: err.message || "Ocorreu um erro ao gravar o filme"
         });
     });
 };
 
-// Retrieve and return all notes from the database.
+// Retrieve and return all movies from the database.
 exports.findAll = (req, res) => {
     Filme.find()
     .then(filmes => {
         res.send(filmes);
     }).catch(err => {
         res.status(500).send({
-            message: err.message || "Some error occurred while retrieving notes."
+            message: err.message || "Ocorreu um erro ao recuperar os filmes"
         });
     });
 };
 
-// Find a single note with a filmeId
+// Find a single movie with a filmeId
 exports.findOne = (req, res) => {
     Filme.findById(req.params.filmeId)
     .then(filme => {
         if(!filme) {
             return res.status(404).send({
-                message: "Note not found with id " + req.params.filmeId
+                message: "Nenhum filme encontrada com id " + req.params.filmeId
             });            
         }
         res.send(filme);
@@ -65,7 +69,7 @@ exports.update = (req, res) => {
     // Validate Request
     if(!req.body.content) {
         return res.status(400).send({
-            message: "Note content can not be empty"
+          message: "Informações do filmes nao podem estar vazias"
         });
     }
 
@@ -88,7 +92,7 @@ exports.update = (req, res) => {
             });                
         }
         return res.status(500).send({
-            message: "Error updating miovie with id " + req.params.filmeId
+            message: "Error updating movie with id " + req.params.filmeId
         });
     });
 };
