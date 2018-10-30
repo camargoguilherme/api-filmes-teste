@@ -1,5 +1,6 @@
 const express = require('express');
 const app = express();
+var cors = require('cors')
 const bodyParser = require('body-parser');
 var session = require('express-session');
 var MongoStore = require('connect-mongo')(session);
@@ -28,6 +29,8 @@ db.once('open', function () {
   // we're connected!
 });
 
+app.use(cors());
+
 //use sessions for tracking logins
 app.use(session({
   secret: 'work hard',
@@ -37,6 +40,8 @@ app.use(session({
     mongooseConnection: db
   })
 }));
+
+
 
 //Rotas
 const indexRoutes = require('./routes/indexRoutes');
