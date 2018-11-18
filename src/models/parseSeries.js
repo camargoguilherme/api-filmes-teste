@@ -5,6 +5,8 @@ const {parse} = require('himalaya');
 const fs = require('fs')
 const urlFile = './series.json';
 const urlFileTeste = './series-teste.json';
+const Serie = require('../models/serieModel')
+const Temporada = require('../models/temporadaModel')
 
 exports.getSeries = async (link = 'https://tuaserie.com/') => {
   try {
@@ -15,17 +17,18 @@ exports.getSeries = async (link = 'https://tuaserie.com/') => {
     let json = dom.window.document.querySelector('.columns').innerHTML;
     json = parse(json);
     let series = new Array();
-    
-    for(i=1; i < json.length; i++){
+    for(i=1; i < json.length-1; i++){
       
-      let titulo = json[i].children[1].children[0].attributes[0].value;
-      let uriPage = json[i].children[1].attributes[0].value;
-      let posterStart = json[i].children[1].children[0].attributes[1].value;
+      let titulo = json[i].children[0].children[0].attributes[0].value;
+      let uriPage = json[i].children[0].attributes[0].value;
+      let posterStart = json[i].children[0].children[0].attributes[1].value;
       let urlFileTemporada = titulo.replace(/\W+/g, '_');
       //await getTemporadas(uriPage, 'temporadas/'+urlFileTemporada+'.json')
       
       console.log("################################################")
-      console.log(titulo+ " "+ series.length)
+      console.log(titulo+ " "+ i)
+      //appendFile(urlFileTeste, JSON.stringify(serie));
+      //console.log(series.length)
       serie = {
         // Titulo da Serie
         titulo: titulo.replace('Assistir', '').trim(),
@@ -33,32 +36,70 @@ exports.getSeries = async (link = 'https://tuaserie.com/') => {
         uriPage: uriPage,
         // Link para poster
         posterStart: posterStart,
-        path: urlFileTemporada
+        path: urlFileTemporada,
       }
-      //appendFile(urlFileTeste, JSON.stringify(serie));
-      //console.log(series.length)
-      temporadas = await getTemporadas(serie.uriPage);
-      serieAux = await insertSerie(serie);
-      temporadaAux = await insertTemporadas(serieAux._id, temporadas)
-      series.push({serieId: "", temporadaId:""});
-      i++
-    } 
+      let temporadas = await getTemporadas(uriPage, titulo);
 
-    writeFile(urlFile, JSON.stringify(series));
-    console.log(series.length)
+      //serieAux = await insertSerie(serie);
+      //temporadaAux = await insertTemporadas(serieAux._id, temporadas)
+      serie.temporadas = temporadas;
+      series.push(serie);
+    }
     return series;
   } catch (error) {
     console.error(error);
   }
 }
 
-async function getTemporadas(href, path){
+exports.getPreparar = async (urls) => {
+  let temporadas = '';
   try {
-    let response = await fetch(href);
+    for(i=0; i < urls.length; i++){ 
+      console.log(urls[i].uriPage)
+      let response = await fetch(urls[i].uriPage);
+      let responseText = await response.text();
+
+      let link = 'https://www.blogger.com/video-play.mp4?contentId=';
+      const dom = new JSDOM(responseText);
+      let uri = dom.window.document.querySelector('#preview > div > div > header').innerHTML;
+      
+      uri = uri.replace(/(<div class="+[a-z]+">)/g, '');
+      uri = uri.replace(/(<header>)/g, '');
+      uri = uri.replace(/(<[/]header>)/g, '');
+      uri = uri.replace(/(<[/]div>)/g, '');
+      uri = uri.replace(/(<br><br>)/g, '\n');
+      uri = uri.replace(/(<br>)/g, '\n');
+      uri = uri.replace(/(<[/]a>)/g, '');
+      uri = uri.replace(/(<h2>)/g, ', {"titulo" : "');
+      uri = uri.replace(/(<[/]h2>)/g, '", "episodio": [');
+      uri = uri.replace(/(Episódio)/g, ',{ "titulo":"Episódio');
+      uri = uri.replace(/(\[,{+)/g, '[{');
+      uri = uri.replace(/(: <a href="[/])/g, '", "uri":"'+link);
+      uri = uri.replace(/(>)/g, ', "dublado": ');
+      uri = uri.replace(/(DUBLADO)/g, 'true }');
+      uri = uri.replace(/(LEGENDADO)/g, 'false }');
+      uri = uri.replace(/(, {+)/g, ']}, {');
+      uri = '#' + uri.trim() + ']}]';
+      uri = uri.replace(/(#]},)/g, '[');
+      //writeFile(`./temporada-teste/${path}.json`, teste);
+      temporadas += uri;
+    }
+    //writeFile(urlFileTeste, JSON.stringify(temporadas));
+    console.log(temporadas.length)
+    return js;
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+async function getTemporadas(url, titulo){
+  let uri;
+  try {
+    let response = await fetch(url);
     let responseText = await response.text();
     let link = 'https://www.blogger.com/video-play.mp4?contentId=';
     const dom = new JSDOM(responseText);
-    let uri = dom.window.document.querySelector('#preview > div > div > header').innerHTML;
+    uri = dom.window.document.querySelector('#preview > div > div > header').innerHTML;
     
     uri = uri.replace(/(<div class="+[a-z]+">)/g, '');
     uri = uri.replace(/(<header>)/g, '');
@@ -73,56 +114,115 @@ async function getTemporadas(href, path){
     uri = uri.replace(/(\[,{+)/g, '[{');
     uri = uri.replace(/(: <a href="[/])/g, '", "uri":"'+link);
     uri = uri.replace(/(>)/g, ', "dublado": ');
+    uri = uri.replace(/&/g, '\&');
+    uri = uri.replace(/(\\", "dublado")/g, '", "dublado"')
     uri = uri.replace(/(DUBLADO)/g, 'true }');
     uri = uri.replace(/(LEGENDADO)/g, 'false }');
+    uri = uri.replace(/(INGLÊS)/g, 'false }');
     uri = uri.replace(/(, {+)/g, ']}, {');
     uri = '#' + uri.trim() + ']}]';
     uri = uri.replace(/(#]},)/g, '[');
     //writeFile(`./temporada-teste/${path}.json`, teste);
-    
-    let temporadas = JSON.parse(uri);
-    return temporadas;
+    let temporadas = new Array();
+    let temporadasAux = Array();
+    temporadas.forEach(temp => {
+      temp.titulo = temp.titulo.replace(titulo, '').trim();
+      temp.episodio = getEpisodio(temp.episodio);
+      temporadasAux.push(temp); 
+    });asd
+    temporadas = JSON.parse(uri);
+    return temporadas
   } catch (error) {
     console.error(error);
   }
 }
 
-async function insertSerie(serie){
-  try {
-    let response = await fetch('http://localhost:3000/series', {
-	    headers: {
-	      'Accept': 'application/json',
-	      'Content-Type': 'application/json'
-	    },
-	    method: "POST",
-	    body: JSON.stringify({"serie":serie})
-	});
-
-    let responseJson = await response.json();
-    return responseJson;
-  } catch (error) {
-    console.error(error);
+function getEpisodio(episodio){
+  let episodios = new Array();
+  
+  for(i=0; i<0; i++){
+    /*ep = {
+      titulo: null,
+      dublado: null,
+      legendado: null
+    }
+    
+    if(episodio[i-1].titulo == episodio[i].titulo){
+      ep.titulo = episodio[i-1].titulo;
+      ep.dublado = { uri: episodio[i-1].uri }
+      ep.legendado = { uri: episodio[i].uri }
+    }else{
+      ep.titulo = episodio[i].titulo;
+      ep.dublado = null;
+      ep.legendado = { uri: episodio[i].uri }
+    }
+    episodios.push(ep);*/
   }
+  return null;
+}
 
+async function createSeries(data){
+  // Create a Serie
+  const serie = new Serie({
+    titulo: data.titulo || "Untitled Serie",
+    path: data.path,
+    posterStart: data.posterStart,
+    uriPage: data.uriPage,
+    temporadas:[]
+  });
+
+  // Save Serie in the database
+  return await serie.save()
+  /*.then(data => {
+    serieData = data;
+  }).catch(err => {
+      return {message: err.message || "Some error occurred while creating the Serie."};
+
+  })*/
+}
+
+async function createTemporadas(serieId, temporadas){
+  // Create a Temporada
+  const temporada = new Temporada({
+    serieId: serieId,
+    temporadas: temporadas
+  });
+
+  // Save Temporada in the database
+  return await temporada.save()
+  /*.then(data => {
+    return JSON.parse(data);
+  }).catch(err => {
+    return {message: err.message || "Some error occurred while creating the Temporada."};
+  });*/
+}
+
+async function insertSerie(serie){
+  
+  const s = await Serie.findOneAndUpdate({titulo: serie.titulo},
+    serie,
+    {upsert: true},
+    function (err, serie) {
+      if (err) console.error(error)
+      return serie;
+    }
+  )
+  return s;
 };
 
 async function insertTemporadas(serieId, temporadas){
-  try {
-    let response = await fetch('http://localhost:3000/temporadas', {
-	    headers: {
-	      'Accept': 'application/json',
-	      'Content-Type': 'application/json'
-	    },
-	    method: "POST",
-	    body: JSON.stringify({"serieId":serieId, "temporadas":temporadas})
-	});
-
-    let responseJson = await response.json();
-    return responseJson;
-  } catch (error) {
-    console.error(error);
-  }
-
+  const temporada = await Temporada.findOneAndUpdate({serieId: serieId},
+    {
+      serieId,
+      temporadas
+    },
+    {upsert: true},
+    function (err, temporada) {
+      if (err) console.error(error)
+      return temporada;
+    }
+  ) 
+  return temporada;
 };
 
 
@@ -143,6 +243,8 @@ async function getImgURL(href) {
     console.error(error);
   }
 }
+
+
 
 async function getMovieURL(href) {
   try {

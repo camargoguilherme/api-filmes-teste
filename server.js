@@ -1,4 +1,5 @@
 require('dotenv').config();
+
 normalizaPort = (val) => {
   const port = parseInt(val, 10);
   if (isNaN(port)) {
@@ -11,7 +12,7 @@ normalizaPort = (val) => {
 }
 
 const app = require('./src/app');
-const port = normalizaPort(process.env.PORT || '3000');
+const port = normalizaPort(process.env.PORT || '3003');
 /*
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
@@ -24,7 +25,7 @@ app.use(function (req, res, next) {
 // define as the last app.use callback
 app.use((err, req, res, next) => {
   res.status(err.status || 500);
-  res.send({"message":err.message});
+  res.send(err.message);
 });
 
 app.listen(port, () => {

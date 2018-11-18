@@ -1,7 +1,7 @@
 {
-  "name": "api",
+  "name": "filmes-e-series-api",
   "version": "1.0.0",
-  "description": "",
+  "description": "API para Filmes e Series",
   "main": "index.js",
   "dependencies": {
     "bcryptjs": "^2.4.3",
@@ -19,12 +19,19 @@
     "node-fetch": "^2.2.0",
     "nodemon": "^1.17.5"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "apidoc": "^0.17.7"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodemon ./server.js"
+    "start": "npm run apidoc && nodemon ./server.js",
+    "apidoc": "apidoc -i src/ -o public/apidoc"
+  },
+  "apidoc":{
+    "name":"Documentação - API Filmes e Séries",
+    "title":"API Filmes e Séries"
   },
   "keywords": [],
-  "author": "",
+  "author": "Guilherme Camargo",
   "license": "ISC"
 }

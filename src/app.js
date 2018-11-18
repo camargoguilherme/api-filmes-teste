@@ -31,18 +31,6 @@ db.once('open', function () {
 
 app.use(cors());
 
-//use sessions for tracking logins
-app.use(session({
-  secret: 'work hard',
-  resave: true,
-  saveUninitialized: false,
-  store: new MongoStore({
-    mongooseConnection: db
-  })
-}));
-
-
-
 //Rotas
 const indexRoutes = require('./routes/indexRoutes');
 const parseRoutes = require('./routes/parseRoutes');
@@ -58,7 +46,17 @@ app.use(bodyParser.urlencoded({ extended: true })); // support encoded bodies
 
 //prefix url
 const prefix = '/api/v1';
-
+/** 
+ * @api {get} / Status
+ * @apiGroup Status
+ * @apiSuccess {String} status Mensagens de status da API
+ * @apiSuccessExample {json} Sucesso
+ *  HTTP/1.1 200 OK
+ *  {
+ *    title: "Node Express API",
+ *    version: "0.0.1"
+ *  }
+ */
 app.get('/', function(req, res, next){
   return res.redirect(prefix)
 })
@@ -69,6 +67,7 @@ app.get(prefix, function (req, res, next) {
     version: "0.0.1"
   });
 });
+app.use(prefix, express.static("public"))
 app.use(prefix, indexRoutes);
 app.use(isAuthenticate);
 app.use(prefix, parseRoutes);
@@ -76,5 +75,15 @@ app.use(prefix, filmeRoutes);
 app.use(prefix, serieRoutes );
 app.use(prefix, temporadaRoutes);
 app.use(prefix, userRoutes);
+
+//use sessions for tracking logins
+app.use(session({
+  secret: 'work hard',
+  resave: true,
+  saveUninitialized: false,
+  store: new MongoStore({
+    mongooseConnection: db
+  })
+}));
 
 module.exports = app;

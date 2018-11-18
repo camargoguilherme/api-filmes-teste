@@ -1,7 +1,12 @@
 const mongoose = require('mongoose');
 
 const TemporadaSchema = mongoose.Schema({
-    serieId: String,
+    serieId: {
+        type: String,
+        unique: true,
+        required: true,
+        trim: true
+    },
     temporadas: []
 }, {
     timestamps: true

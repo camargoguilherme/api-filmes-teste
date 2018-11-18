@@ -44,10 +44,20 @@ exports.getTemporadas = async (req, res, next) => {
 
 exports.getPreparar = (req, res, next) => { 
   console.log('getPreparar') 
-  /*let series = parseSeries.getSeries();
-  let temporadas = Array();*/
+  const URL = [ 
+    {
+      titulo: 'The Big Bang Theory',
+      uriPage: 'https://www.tuaserie.com/serie/assistir-the-big-bang-theory.html'
+    },
+    {
+      titulo: 'Supernatural',
+      uriPage: 'https://www.tuaserie.com/serie/assistir-serie-supernatural-online.html'
+    },
+   ]
+  let series = parseSeries.getPreparar(URL);
+  let temporadas = Array();
   
   res.status(200).send(
-    {"response":"teste"} 
+    series
   );
 };

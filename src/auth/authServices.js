@@ -8,17 +8,20 @@ exports.authenticate = (req, res, done) => {
   console.log(req.body)
   User.findOne({ username: username })
     .exec(function (err, user) {
+      var error = new Error();
       if (err) {
-        return done(err)
+        error = err;
+        error.status = 500;
+        return done(error)
       } else if (!user) {
-        var err = new Error({message: 'Erro ao realizar login, usuário não encontrado'});
-        err.status = 401;
-        return done(err);
+        error.message = { auth: false, message: 'Erro ao realizar login, usuário não encontrado'};
+        error.status = 401;
+        return done(error);
       }
       if(!user.authenticateUser(password)){
-        var err = new Error('Usuário ou senha inválidos');
-        err.status = 401;
-        return done(err);
+        error.message = { auth: false,message: 'Usuário ou senha inválidos'};
+        error.status = 401;
+        return done(error);
       }else{
         return res.status(200).send(user.toJson());
       }

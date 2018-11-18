@@ -1,8 +1,12 @@
 const mongoose = require('mongoose');
 
 const FilmeSchema = mongoose.Schema({
-    id: String,
-    titulo: String,
+    titulo: {
+        type: String,
+        unique: true,
+        required: true,
+        trim: true
+      },
     uri: String,
     uriPage: String,
     resumo: String,
