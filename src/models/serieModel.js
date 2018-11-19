@@ -10,6 +10,8 @@ const SerieSchema = mongoose.Schema({
     path: String,
     posterStart: String,
     uriPage: String,
+    status: Boolean,
+    temporadas: Number
 }, {
     timestamps: true
 });

@@ -29,7 +29,7 @@ exports.create = (req, res) => {
 
 // Retrieve and return all temporadas from the database.
 exports.findAll = (req, res) => {
-    Temporada.find()
+    Temporada.find({}, {_id:1, serieId:1, temporadas:1 })
     .then(temporadas => {
         res.send(temporadas);
     }).catch(err => {
@@ -41,7 +41,7 @@ exports.findAll = (req, res) => {
 
 // Find a single temporada with a temporadaId
 exports.findOne = (req, res) => {
-    Temporada.find({serieId: req.params.serieId})
+    Temporada.find({serieId: req.params.serieId}, {_id:1, serieId:1, temporadas:1 })
     .then(temporada => {
         if(!temporada) {
             return res.status(404).send({

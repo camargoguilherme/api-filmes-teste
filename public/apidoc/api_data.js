@@ -203,7 +203,7 @@ define({ "api": [
   {
     "type": "get",
     "url": "/parse-filmes",
-    "title": "Parse-filmes",
+    "title": "Parsear Filmes",
     "group": "Parse",
     "permission": [
       {
@@ -220,7 +220,7 @@ define({ "api": [
   {
     "type": "get",
     "url": "/parse-preparar",
-    "title": "Parse-preparar",
+    "title": "Teste do parse",
     "group": "Parse",
     "permission": [
       {
@@ -237,7 +237,24 @@ define({ "api": [
   {
     "type": "get",
     "url": "/parse-series",
-    "title": "Parse-series",
+    "title": "Parsear Temporadas",
+    "group": "Parse",
+    "permission": [
+      {
+        "name": "admin",
+        "title": "Acesso permitido para admins",
+        "description": "<p>O acesso a esse endpoint é permitido apenas para usuários admin</p>"
+      }
+    ],
+    "version": "0.0.0",
+    "filename": "src/routes/parseRoutes.js",
+    "groupTitle": "Parse",
+    "name": "GetParseSeries"
+  },
+  {
+    "type": "get",
+    "url": "/parse-series",
+    "title": "Parsear Series",
     "group": "Parse",
     "permission": [
       {
@@ -277,21 +294,10 @@ define({ "api": [
       }
     },
     "success": {
-      "fields": {
-        "Success 200": [
-          {
-            "group": "Success 200",
-            "type": "json",
-            "optional": false,
-            "field": "series",
-            "description": "<p>Series.</p>"
-          }
-        ]
-      },
       "examples": [
         {
           "title": "Sucesso",
-          "content": "HTTP/1.1 200 OK\n{\n}",
+          "content": "HTTP/1.1 200 OK\n{\n  \n}",
           "type": "json"
         }
       ]
@@ -314,7 +320,7 @@ define({ "api": [
       },
       "examples": [
         {
-          "title": "Header-Example",
+          "title": "Header Exemplo ",
           "content": "{\n  \"x-access-token\":\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjViZDA4YzMzMDRiZjlhMzEzYmI5ZGFmNiIsImlhdCI6MTU0MjU2MzY2NiwiZXhwIjoxNTQyNjUwMDY2fQ.PcuYabWqUDeGUPoUFFZix9widzkS5MB_5Bqw0XhrCU4\"\n}",
           "type": "json"
         }
@@ -352,7 +358,60 @@ define({ "api": [
           "content": " HTTP/1.1 200 OK\n [\n   { \n     \"_id\": \"5bf00fc03846d0e8ea842ed7\", \n     \"titulo\": \"Supernatural\", \n     \"__v\": 0, \n     \"createdAt\": \"2018-11-17T12:55:28.304Z\",\n     \"path\": \"Supernatural\", \n     \"posterStart\": \"https://image.tmdb.org/t/p/w300/3iFm6Kz7iYoFaEcj4fLyZHAmTQA.jpg\", \n     \"updatedAt\": \"2018-11-17T13:34:11.220Z\", \n     \"uriPage\": \"https://tuaserie.com/serie/assistir-serie-supernatural-online/\"\n   },\n   { \n     \"_id\": \"5bf00fc43846d0e8ea842f1f\", \n     \"titulo\": \"Chicago MED\", \n     \"__v\": 0, \n     \"createdAt\": \"2018-11-17T12:55:32.552Z\", \n     \"path\": \"Chicago_MED\", \n     \"posterStart\": \"https://image.tmdb.org/t/p/w300/jMvkqK2uQbghLgZUNEhYL1SHT7e.jpg\",\n     \"updatedAt\": \"2018-11-17T12:58:45.876Z\", \n     \"uriPage\": \"https://tuaserie.com/serie/assistir-chicago-med/\"\n   },\n ...\n]",
           "type": "json"
         }
-      ]
+      ],
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "_id",
+            "description": "<p>ID.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "titulo",
+            "description": "<p>Titulo.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "Integer",
+            "optional": false,
+            "field": "__v",
+            "description": ""
+          },
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "path",
+            "description": ""
+          },
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "posterStart",
+            "description": "<p>Link.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "updatedAt",
+            "optional": false,
+            "field": "series",
+            "description": "<p>Series.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "uriPage",
+            "description": "<p>Link.</p>"
+          }
+        ]
+      }
     },
     "version": "0.0.0",
     "filename": "src/routes/serieRoutes.js",
@@ -372,7 +431,7 @@ define({ "api": [
       },
       "examples": [
         {
-          "title": "Header-Example",
+          "title": "Header Exemplo ",
           "content": "{\n  \"x-access-token\":\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjViZDA4YzMzMDRiZjlhMzEzYmI5ZGFmNiIsImlhdCI6MTU0MjU2MzY2NiwiZXhwIjoxNTQyNjUwMDY2fQ.PcuYabWqUDeGUPoUFFZix9widzkS5MB_5Bqw0XhrCU4\"\n}",
           "type": "json"
         }
@@ -417,24 +476,66 @@ define({ "api": [
       }
     },
     "success": {
-      "fields": {
-        "Success 200": [
-          {
-            "group": "Success 200",
-            "type": "json",
-            "optional": false,
-            "field": "series",
-            "description": "<p>Series.</p>"
-          }
-        ]
-      },
       "examples": [
         {
           "title": "Sucesso",
           "content": "HTTP/1.1 200 OK\n{ \n  \"_id\": \"5bf00fc03846d0e8ea842ed7\", \n  \"titulo\": \"Supernatural\", \n  \"__v\": 0, \n  \"createdAt\": \"2018-11-17T12:55:28.304Z\",\n  \"path\": \"Supernatural\", \n  \"posterStart\": \"https://image.tmdb.org/t/p/w300/3iFm6Kz7iYoFaEcj4fLyZHAmTQA.jpg\", \n  \"updatedAt\": \"2018-11-17T13:34:11.220Z\", \n  \"uriPage\": \"https://tuaserie.com/serie/assistir-serie-supernatural-online/\"\n},",
           "type": "json"
         }
-      ]
+      ],
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "_id",
+            "description": "<p>ID.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "titulo",
+            "description": "<p>Titulo.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "Integer",
+            "optional": false,
+            "field": "__v",
+            "description": ""
+          },
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "path",
+            "description": ""
+          },
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "posterStart",
+            "description": "<p>Link.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "updatedAt",
+            "optional": false,
+            "field": "series",
+            "description": "<p>Series.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "uriPage",
+            "description": "<p>Link.</p>"
+          }
+        ]
+      }
     },
     "version": "0.0.0",
     "filename": "src/routes/serieRoutes.js",
@@ -454,7 +555,7 @@ define({ "api": [
       },
       "examples": [
         {
-          "title": "Header-Example",
+          "title": "Header Exemplo ",
           "content": "{\n  \"x-access-token\":\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjViZDA4YzMzMDRiZjlhMzEzYmI5ZGFmNiIsImlhdCI6MTU0MjU2MzY2NiwiZXhwIjoxNTQyNjUwMDY2fQ.PcuYabWqUDeGUPoUFFZix9widzkS5MB_5Bqw0XhrCU4\"\n}",
           "type": "json"
         }
@@ -477,7 +578,7 @@ define({ "api": [
   },
   {
     "type": "post",
-    "url": "/series/:serieId",
+    "url": "/series/",
     "title": "Criar serie",
     "group": "Series",
     "permission": [
@@ -494,28 +595,45 @@ define({ "api": [
             "group": "Parameter",
             "type": "String",
             "optional": false,
-            "field": "serieId",
-            "description": "<p>Id da Serie</p>"
-          }
-        ]
-      }
-    },
-    "success": {
-      "fields": {
-        "Success 200": [
+            "field": "titulo",
+            "description": "<p>Titulo da Serie</p>"
+          },
           {
-            "group": "Success 200",
-            "type": "json",
+            "group": "Parameter",
+            "type": "String",
             "optional": false,
-            "field": "series",
-            "description": "<p>Series.</p>"
+            "field": "path",
+            "description": "<p>Titulo da Serie</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "posterStart",
+            "description": "<p>Link do poster da Serie</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "uriPage",
+            "description": "<p>Link da Serie</p>"
           }
         ]
       },
       "examples": [
         {
+          "title": "Exemplo de serie",
+          "content": "{\n  \"titulo\": \"Supernatural\", \n  \"path\": \"Supernatural\", \n  \"posterStart\": \"https://image.tmdb.org/t/p/w300/3iFm6Kz7iYoFaEcj4fLyZHAmTQA.jpg\", \n  \"uriPage\": \"https://tuaserie.com/serie/assistir-serie-supernatural-online/\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "success": {
+      "examples": [
+        {
           "title": "Sucesso",
-          "content": "HTTP/1.1 200 OK\n{\n}",
+          "content": "HTTP/1.1 200 OK\n  { \n    \"_id\": \"5bf00fc03846d0e8ea842ed7\", \n    \"titulo\": \"Supernatural\", \n    \"__v\": 0, \n    \"createdAt\": \"2018-11-17T12:55:28.304Z\",\n    \"path\": \"Supernatural\", \n    \"posterStart\": \"https://image.tmdb.org/t/p/w300/3iFm6Kz7iYoFaEcj4fLyZHAmTQA.jpg\", \n    \"updatedAt\": \"2018-11-17T13:34:11.220Z\", \n    \"uriPage\": \"https://tuaserie.com/serie/assistir-serie-supernatural-online/\"\n  },",
           "type": "json"
         }
       ]
@@ -523,7 +641,7 @@ define({ "api": [
     "version": "0.0.0",
     "filename": "src/routes/serieRoutes.js",
     "groupTitle": "Series",
-    "name": "PostSeriesSerieid",
+    "name": "PostSeries",
     "header": {
       "fields": {
         "": [
@@ -538,7 +656,7 @@ define({ "api": [
       },
       "examples": [
         {
-          "title": "Header-Example",
+          "title": "Header Exemplo ",
           "content": "{\n  \"x-access-token\":\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjViZDA4YzMzMDRiZjlhMzEzYmI5ZGFmNiIsImlhdCI6MTU0MjU2MzY2NiwiZXhwIjoxNTQyNjUwMDY2fQ.PcuYabWqUDeGUPoUFFZix9widzkS5MB_5Bqw0XhrCU4\"\n}",
           "type": "json"
         }
@@ -578,8 +696,29 @@ define({ "api": [
             "group": "Parameter",
             "type": "String",
             "optional": false,
-            "field": "serieId",
-            "description": "<p>Id da Serie</p>"
+            "field": "titulo",
+            "description": "<p>Titulo.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "path",
+            "description": "<p>.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "posterStart",
+            "description": "<p>Link para imagem de poster da Série.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "uriPage",
+            "description": "<p>Link da Série.</p>"
           }
         ]
       }
@@ -622,7 +761,7 @@ define({ "api": [
       },
       "examples": [
         {
-          "title": "Header-Example",
+          "title": "Header Exemplo ",
           "content": "{\n  \"x-access-token\":\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjViZDA4YzMzMDRiZjlhMzEzYmI5ZGFmNiIsImlhdCI6MTU0MjU2MzY2NiwiZXhwIjoxNTQyNjUwMDY2fQ.PcuYabWqUDeGUPoUFFZix9widzkS5MB_5Bqw0XhrCU4\"\n}",
           "type": "json"
         }

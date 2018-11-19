@@ -42,7 +42,7 @@ UserSchema.methods = {
   createToken() {
     // create a token
     var token = jwt.sign({ id: this._id }, process.env.JWT_WORD || config.secret, {
-      expiresIn: 86400 // expires in 24 hours
+      //expiresIn: 86400 // expires in 24 hours
     });
     return token   
   },  

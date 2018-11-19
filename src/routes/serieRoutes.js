@@ -9,6 +9,17 @@ const prefix = '/series';
  * O acesso a esse endpoint é permitido apenas para usuários admin
  */
 
+ /**
+ * @apiDefine FieldsSerie
+ * @apiSuccess {String} _id ID.
+ * @apiSuccess {String} titulo Titulo.
+ * @apiSuccess {Integer} __v 
+ * @apiSuccess {String} path 
+ * @apiSuccess {String} posterStart Link.
+ * @apiSuccess {updatedAt} series Series.
+ * @apiSuccess {String} uriPage Link.
+ */
+
 /**
  * @apiDefine Header
  * @apiHeader {String} x-access-token Token.
@@ -16,7 +27,7 @@ const prefix = '/series';
 
 /**
  * @apiDefine HeaderExample
- * @apiHeaderExample {json} Header-Example
+ * @apiHeaderExample {json} Header Exemplo 
  *  {
  *    "x-access-token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjViZDA4YzMzMDRiZjlhMzEzYmI5ZGFmNiIsImlhdCI6MTU0MjU2MzY2NiwiZXhwIjoxNTQyNjUwMDY2fQ.PcuYabWqUDeGUPoUFFZix9widzkS5MB_5Bqw0XhrCU4"
  *  }
@@ -51,6 +62,7 @@ const prefix = '/series';
  *
  * @apiUse Header
  * @apiUse HeaderExample
+ * @apiUse FieldsSerie
  * 
  * @apiSuccessExample {json} Sucesso
  *  HTTP/1.1 200 OK
@@ -93,7 +105,8 @@ router.get(prefix, series.findAll);
  * @apiUse Header
  * @apiUse HeaderExample
  * 
- * @apiSuccess {json} series Series.
+ * @apiUse FieldsSerie
+ *  
  * @apiSuccessExample {json} Sucesso
  *  HTTP/1.1 200 OK
  *  { 
@@ -113,20 +126,38 @@ router.get(prefix, series.findAll);
 router.get(prefix+'/:serieId', series.findOne);
 
 /**
- * @api {post} /series/:serieId Criar serie
+ * @api {post} /series/ Criar serie
  * @apiGroup Series
  * @apiPermission admin
- * 
- * @apiParam {String} serieId Id da Serie
  * 
  * @apiUse Header
  * @apiUse HeaderExample
  * 
- * @apiSuccess {json} series Series.
+ * @apiParam {String} titulo Titulo da Serie
+ * @apiParam {String} path Titulo da Serie
+ * @apiParam {String} posterStart Link do poster da Serie
+ * @apiParam {String} uriPage Link da Serie
+ * 
+ * @apiParamExample {json} Exemplo de serie
+ *  {
+ *    "titulo": "Supernatural", 
+ *    "path": "Supernatural", 
+ *    "posterStart": "https://image.tmdb.org/t/p/w300/3iFm6Kz7iYoFaEcj4fLyZHAmTQA.jpg", 
+ *    "uriPage": "https://tuaserie.com/serie/assistir-serie-supernatural-online/"
+ *  }
+ * 
  * @apiSuccessExample {json} Sucesso
  *  HTTP/1.1 200 OK
- *  {
- *  }
+ *    { 
+ *      "_id": "5bf00fc03846d0e8ea842ed7", 
+ *      "titulo": "Supernatural", 
+ *      "__v": 0, 
+ *      "createdAt": "2018-11-17T12:55:28.304Z",
+ *      "path": "Supernatural", 
+ *      "posterStart": "https://image.tmdb.org/t/p/w300/3iFm6Kz7iYoFaEcj4fLyZHAmTQA.jpg", 
+ *      "updatedAt": "2018-11-17T13:34:11.220Z", 
+ *      "uriPage": "https://tuaserie.com/serie/assistir-serie-supernatural-online/"
+ *    },
  * 
  * @apiUse NenhumToken
  * @apiUse FalhaAutenticar
@@ -138,10 +169,14 @@ router.post(prefix, isAdmin, series.create);
  * @apiGroup Series
  * @apiPermission admin
  * 
- * @apiParam {String} serieId Id da Serie
- * 
  * @apiUse Header
  * @apiUse HeaderExample
+ * 
+ * @apiParam {String} titulo Titulo.
+ * @apiParam {String} path .
+ * @apiParam {String} posterStart Link para imagem de poster da Série.
+ * @apiParam {String} uriPage Link da Série.
+ * 
  * 
  * @apiSuccess {json} series Series.
  * @apiSuccessExample {json} Sucesso

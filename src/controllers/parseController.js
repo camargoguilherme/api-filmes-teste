@@ -31,32 +31,21 @@ exports.getSeries = async (req, res, next) => {
 
 
 exports.getTemporadas = async (req, res, next) => {  
-  let link = req.body.link;
-  let serie = req.body.serie;
-  console.log('getTemporadas\nlink: '+link+ '\nserie: '+serie )
-  console.log('link: '+link )
-  console.log('serie: '+serie )
-  let temporadas =  await parseSeries.getTemporadas(link, serie);
+  console.log('getTemporadas')
+  let temporadas =  await parseSeries.getTemporadas();
   res.status(200).send(
     temporadas   
   );
 };
 
-exports.getPreparar = (req, res, next) => { 
+exports.getPreparar = async (req, res, next) => { 
   console.log('getPreparar') 
-  const URL = [ 
-    {
-      titulo: 'The Big Bang Theory',
-      uriPage: 'https://www.tuaserie.com/serie/assistir-the-big-bang-theory.html'
-    },
+  const SERIE = 
     {
       titulo: 'Supernatural',
-      uriPage: 'https://www.tuaserie.com/serie/assistir-serie-supernatural-online.html'
-    },
-   ]
-  let series = parseSeries.getPreparar(URL);
-  let temporadas = Array();
-  
+      url: 'https://www.tuaserie.com/serie/assistir-serie-supernatural-online.html'
+    }
+  let series = await parseSeries.getPreparar(SERIE);  
   res.status(200).send(
     series
   );

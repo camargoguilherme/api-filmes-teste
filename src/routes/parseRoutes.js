@@ -9,7 +9,7 @@ var { isAdmin } = require('../auth/authServices');
  */
 
 /**
- * @api {get} /parse-filmes Parse-filmes
+ * @api {get} /parse-filmes Parsear Filmes
  * @apiGroup Parse
  * @apiPermission admin
  */
@@ -19,16 +19,21 @@ router.get('/parse-filmes', controller.getFilmes);
 router.post('parse-filmes', controller.getFilme);
 
 /**
- * @api {get} /parse-series Parse-series
+ * @api {get} /parse-series Parsear Series
  * @apiGroup Parse
  * @apiPermission admin
  */
 router.get('/parse-series', controller.getSeries);
 
-router.post('/parse-series', controller.getTemporadas);
+/**
+ * @api {get} /parse-series Parsear Temporadas
+ * @apiGroup Parse
+ * @apiPermission admin
+ */
+router.get('/parse-temporadas', controller.getTemporadas);
 
 /**
- * @api {get} /parse-preparar Parse-preparar
+ * @api {get} /parse-preparar Teste do parse
  * @apiGroup Parse
  * @apiPermission admin
  */

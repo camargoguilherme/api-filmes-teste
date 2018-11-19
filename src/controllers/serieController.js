@@ -16,8 +16,7 @@ exports.create = (req, res) => {
         titulo: req.body.serie.titulo || "Untitled Serie",
         path: req.body.serie.path,
         posterStart: req.body.serie.posterStart,
-        uriPage: req.body.serie.uriPage,
-        temporadas:[]
+        uriPage: req.body.serie.uriPage
     });
 
     // Save Serie in the database
@@ -33,7 +32,7 @@ exports.create = (req, res) => {
 
 // Retrieve and return all series from the database.
 exports.findAll = (req, res) => {
-    Serie.find()
+    Serie.find({}, {_id:1, titulo:1, uriPage:1, path:1, posterStart:1, status:1, temporadas:1})
     .then(series => {
         res.send(series);
     }).catch(err => {

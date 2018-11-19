@@ -4,6 +4,7 @@ var cors = require('cors')
 const bodyParser = require('body-parser');
 var session = require('express-session');
 var MongoStore = require('connect-mongo')(session);
+var compression = require('compression');
 const { isAuthenticate } = require('./auth/authServices');
 
 // Configuring the database
@@ -30,6 +31,7 @@ db.once('open', function () {
 });
 
 app.use(cors());
+app.use(compression());
 
 //Rotas
 const indexRoutes = require('./routes/indexRoutes');
