@@ -7,29 +7,22 @@ var UserProfileSchema = new mongoose.Schema({
     required: true,
     trim: true
   },
-  
-  favoritos:[
-    {
-      id: idfavorito,
-      filmes: [true, false],
-    }    
-  ],
-  seekfilmes:[
-    {
-      id: idfilme,
-      seek: seekFilme
-    }
-  ],
-
-  seekseries: [
-    {
-      id: idSerie,
-      indexSerie: indexSerie,
-      indexEpisodio: indexEpisodio 
-    }
-  ]
-
-
+  email: {
+    type: String,
+    unique: true,
+    required: true,
+    trim: true
+  },
+  username: {
+    type: String,
+    unique: true,
+    required: true,
+    trim: true
+  },
+  favoritos:{
+    filmes:[],
+    series:[]
+  },
 });
 
 module.exports = mongoose.model('UserProfile', UserProfileSchema);

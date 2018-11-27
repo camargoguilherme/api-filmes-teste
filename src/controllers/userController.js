@@ -11,7 +11,7 @@ exports.create = (req, res) => {
 
     // Create a User
     const user = new User({
-        title: req.body.title || "Untitled User", 
+        title: req.body.title || "Untitled User",
         content: req.body.content
     });
 
@@ -45,14 +45,14 @@ exports.findOne = (req, res) => {
         if(!user) {
             return res.status(404).send({
                 message: "User not found with id " + req.params.userId
-            });            
+            });
         }
         res.send(user);
     }).catch(err => {
         if(err.kind === 'ObjectId') {
             return res.status(404).send({
                 message: "User not found with id " + req.params.userId
-            });                
+            });
         }
         return res.status(500).send({
             message: "Error retrieving user with id " + req.params.userId
@@ -85,7 +85,7 @@ exports.update = (req, res) => {
         if(err.kind === 'ObjectId') {
             return res.status(404).send({
                 message: "User not found with id " + req.params.userId
-            });                
+            });
         }
         return res.status(500).send({
             message: "Error updating user with id " + req.params.userId
@@ -107,7 +107,7 @@ exports.delete = (req, res) => {
         if(err.kind === 'ObjectId' || err.name === 'NotFound') {
             return res.status(404).send({
                 message: "User not found with id " + req.params.userId
-            });                
+            });
         }
         return res.status(500).send({
             message: "Could not delete user with id " + req.params.userId

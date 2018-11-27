@@ -13,10 +13,14 @@ const mongoose = require('mongoose');
 mongoose.Promise = global.Promise;
 
 // Connecting to the database
-mongoose.connect(process.env.URL, {
+mongoose.connect(process.env.URL_DEV || process.env.URL, {
     useNewUrlParser: true
 }).then(() => {
     console.log("Successfully connected to the database");    
+    if(process.env.URL_DEV)
+      console.log('Conetado a base de Desenvolvimento')
+    else
+      console.log('Conetado a base de Produção')
 }).catch(err => {
     console.log('Could not connect to the database. Exiting now...', err);
     process.exit();
@@ -78,6 +82,7 @@ app.use(prefix, serieRoutes );
 app.use(prefix, temporadaRoutes);
 app.use(prefix, userRoutes);
 
+/*
 //use sessions for tracking logins
 app.use(session({
   secret: 'work hard',
@@ -86,6 +91,6 @@ app.use(session({
   store: new MongoStore({
     mongooseConnection: db
   })
-}));
+}));*/
 
 module.exports = app;

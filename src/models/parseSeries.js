@@ -9,6 +9,7 @@ const Serie = require('../models/serieModel')
 const Temporada = require('../models/temporadaModel')
 
 exports.getSeries = async (link = 'https://tuaserie.com/') => {
+  await deleteSeriesETemporadas();
   try {
     let response = await fetch(link);
     let responseText = await response.text();
@@ -38,7 +39,7 @@ exports.getSeries = async (link = 'https://tuaserie.com/') => {
       }
       series = await insertSerie(serie);
     }
-    return {message: "Series salvas no banco com sucesso"};
+    return {message: `Series salvas no banco com sucesso`};
   } catch (error) {
     console.error(error);
   }
@@ -98,15 +99,12 @@ exports.getTemporadas = async() => {
     if (err) console.error(error)
     return series;
   });
-  console.log(series)
   let serie;
-  
     for(i=0; i<series.length; i++){
       serie = series[i];
 
       let response = await fetch(series[i].uriPage);
       let responseText = await response.text();
-      let link = 'https://www.blogger.com/video-play.mp4?contentId=';
       const dom = new JSDOM(responseText);
       try {
         uri = dom.window.document.querySelector('#preview > div > div > header').innerHTML;
@@ -124,7 +122,7 @@ exports.getTemporadas = async() => {
       uri = uri.replace(/(<[/]h2>)/g, '", "episodio": [');
       uri = uri.replace(/(Episódio)/g, ',{ "titulo":"Episódio');
       uri = uri.replace(/(\[,{+)/g, '[{');
-      uri = uri.replace(/(: <a href="[/])/g, '", "uri":"'+link);
+      uri = uri.replace(/(: <a href="[/])/g, '", "uri":"');
       uri = uri.replace(/(>)/g, ', "dublado": ');
       uri = uri.replace(/&/g, '\&');
       uri = uri.replace(/(\\", "dublado")/g, '", "dublado"')
@@ -158,27 +156,36 @@ exports.getTemporadas = async() => {
 function getEpisodio(episodio){
   let episodios = new Array();
   let index = 0;
+  let link = 'https://tuaserie.com/ep.php?cod=';
+  
   episodio.map( episodio=>{
-    if(episodio.dublado){
+    if(!episodio.dublado){
       let ep ={};
       ep.titulo = episodio.titulo;
-      ep.dublado = episodio.uri;
+      ep.legendado = link+Base64.encode(episodio.uri);
       episodios.push(ep);
     }    
   })
-  episodio.map( (episodio)=>{
-    if(index == episodios.length){
+
+  if(episodios.length == 0){
+    episodio.map( episodio => {
       let ep ={};
       ep.titulo = episodio.titulo;
-      ep.legendado = episodio.uri;
+      ep.dublado = link+Base64.encode(episodio.uri);
       episodios.push(ep);
-    }else{
-      if(!episodio.dublado && episodios[index].titulo == episodio.titulo){
-        episodios[index].legendado = episodio.uri;
-        index++
-      }   
-    } 
-  })
+    })  
+  }else{
+    episodio.map( episodio => {
+    
+      if(index < episodios.length){
+        if(episodio.dublado && episodio.titulo == episodios[index].titulo){
+          episodios[index].dublado = link+Base64.encode(episodio.uri);
+          index++
+        }
+      }
+    })  
+  }
+  
   return episodios;
 }
 
@@ -210,6 +217,24 @@ async function insertTemporadas(serieId, temporadas){
   return temporada;
 };
 
+async function deleteSeriesETemporadas(){
+  const series = await Serie.deleteMany({}/*,
+    function (err, result) {
+      if (err)  
+        return err;
+      return result;
+    }*/
+  ) 
+  const temporada = await Temporada.deleteMany({}/*,
+    function (err, result) {
+      if (err)  
+        return err;
+      return result;
+    }*/
+  ) 
+  console.log(series);
+  console.log(temporada);
+};
 
 async function getImgURL(href) {
   
@@ -249,6 +274,94 @@ async function getMovieURL(href) {
     console.error(error);
   }
 }
+
+// Create Base64 Object
+var Base64 = {
+  _keyStr:"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=",
+  encode: function(e){
+    var t="";
+    var n,r,i,s,o,u,a;
+    var f=0;
+    e=Base64._utf8_encode(e);
+    while(f<e.length){
+      n=e.charCodeAt(f++);
+      r=e.charCodeAt(f++);
+      i=e.charCodeAt(f++);
+      s=n>>2;
+      o=(n&3)<<4|r>>4;
+      u=(r&15)<<2|i>>6;
+      a=i&63;
+      if(isNaN(r)){u=a=64}
+      else 
+        if(isNaN(i)){a=64}
+      t=t+this._keyStr.charAt(s)+this._keyStr.charAt(o)+this._keyStr.charAt(u)+this._keyStr.charAt(a)
+    }
+    return t},
+  decode:function(e){
+    var t="";
+    var n,r,i;
+    var s,o,u,a;
+    var f=0;
+    e=e.replace(/[^A-Za-z0-9+/=]/g,"");
+    while(f<e.length){
+      s=this._keyStr.indexOf(e.charAt(f++));
+      o=this._keyStr.indexOf(e.charAt(f++));
+      u=this._keyStr.indexOf(e.charAt(f++));
+      a=this._keyStr.indexOf(e.charAt(f++));
+      n=s<<2|o>>4;
+      r=(o&15)<<4|u>>2;
+      i=(u&3)<<6|a;
+      t=t+String.fromCharCode(n);
+      if(u!=64){
+        t=t+String.fromCharCode(r)}
+        if(a!=64){
+          t=t+String.fromCharCode(i)
+        }
+      }
+      t=Base64._utf8_decode(t);
+      return t
+    },
+    _utf8_encode:function(e){
+      e=e.replace(/rn/g,"n");
+      var t="";
+      for(var n=0;n<e.length;n++){
+        var r=e.charCodeAt(n);
+        if(r<128){
+          t+=String.fromCharCode(r)
+        }else 
+        if(r>127&&r<2048){
+          t+=String.fromCharCode(r>>6|192);
+          t+=String.fromCharCode(r&63|128)
+        }else{
+          t+=String.fromCharCode(r>>12|224);
+          t+=String.fromCharCode(r>>6&63|128);
+          t+=String.fromCharCode(r&63|128)
+        }
+      }
+      return t},
+      _utf8_decode:function(e){
+        var t="";
+        var n=0;
+        var r=c1=c2=0;
+        while(n<e.length){
+          r=e.charCodeAt(n);
+          if(r<128){
+            t+=String.fromCharCode(r);n++
+          }else 
+          if(r>191&&r<224){
+            c2=e.charCodeAt(n+1);
+            t+=String.fromCharCode((r&31)<<6|c2&63);
+            n+=2
+          }else{
+            c2=e.charCodeAt(n+1);
+            c3=e.charCodeAt(n+2);
+            t+=String.fromCharCode((r&15)<<12|(c2&63)<<6|c3&63);
+            n+=3
+          }
+        }
+        return t}
+      }
+    
 
 function urlify(text) {
   //var urlRegex = /(((https?:\/\/)|(www\.))[^\s]+[(.jpg)|(.png)|(.mp4)]$)/g;
