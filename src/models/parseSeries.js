@@ -1,52 +1,81 @@
-const fetch = require("node-fetch");4
-const jsdom = require("jsdom");
-const { JSDOM } = jsdom; 
-const {parse} = require('himalaya');
+const request = require('request');
+const cheerio = require('cheerio')
 const fs = require('fs')
 const urlFile = './series.json';
 const urlFileTeste = './series-teste.json';
 const Serie = require('../models/serieModel')
 const Temporada = require('../models/temporadaModel')
 
-exports.getSeries = async (link = 'https://tuaserie.com/') => {
-  await deleteSeriesETemporadas();
-  try {
-    let response = await fetch(link);
-    let responseText = await response.text();
-
-    const dom = new JSDOM(responseText);
-    let json = dom.window.document.querySelector('.columns').innerHTML;
-    json = parse(json);
-    
-    for(i=1; i < json.length-1; i++){
-      
-      let titulo = json[i].children[0].children[0].attributes[0].value;
-      titulo = titulo.replace(/&amp;/g, '\&');
-      titulo = titulo.replace('Assistir', '').trim();
-      let uriPage = json[i].children[0].attributes[0].value;
-      let posterStart = json[i].children[0].children[0].attributes[1].value;
-      let urlFileTemporada = titulo.replace(/\W+/g, '_');
-      
-      console.log("################################################")
-      console.log(titulo+ " "+ i)
-      serie = {
-        titulo: titulo,
-        uriPage: uriPage,
-        posterStart: posterStart,
-        path: urlFileTemporada,
-        status: false,
-        temporadas: 0
-      }
-      series = await insertSerie(serie);
+exports.getSeries = (link = 'https://tuaserie.com/') => {
+  request(link, function (error, response, body) {
+    if(response && response.statusCode == 200){
+      var $ = cheerio.load(body)
+      response = null;
+      $('.image').each(async function(i, elem) {
+        let titulo = $(this).children('a').children('img').attr().alt.replace(/&amp;/g, '\&').replace('Assistir', '').trim();
+        titulo = titulo.replace(/&amp;/g, '\&');
+        titulo = titulo.replace('Assistir', '').trim();
+        let uriPage = $(this).children('a').attr().href;
+        let posterStart = $(this).children('a').children('img').attr().src;
+        let urlFileTemporada = titulo.replace(/\W+/g, '_');
+        serie = {
+          titulo: titulo,
+          uriPage: uriPage,
+          posterStart: posterStart,
+          path: urlFileTemporada,
+          status: false,
+          temporadas: 0
+        }
+        if(i > 0){
+          console.log("################################################")
+          console.log(titulo+ " "+ i)
+          series = await insertSerie(serie);   
+        }             
+      });
     }
+    if(error)
+      return error
     return {message: `Series salvas no banco com sucesso`};
-  } catch (error) {
-    console.error(error);
-  }
+  });
 }
 
-//let temporadas = await getTemporadas(uriPage, titulo);
-//temporadaAux = await insertTemporadas(serieAux._id, temporadas)
+exports.getTemporadas = () => {
+  let uri = 'https://tuaserie.com/serie/assistir-smallville-online.html'
+  /*let series = await Serie.find({status: false},{_id:1, titulo:1, uriPage:1}, function (err, series) {
+    if (err) console.error(error)
+    return series;
+  });*/
+  request(uri, function (error, response, body) {
+      if(response && response.statusCode == 200){
+        var $ = cheerio.load(body)
+        response = null;
+        $('#preview').children('.inner').children('.content').children('header').each(function(i, elem) {
+          //$(this).attr()
+          //$(this).text()
+          //let titulos =  $(this).children('h2').toArray().keys;
+          
+          //  TEMPORADAS
+          // $('h2').text().split(/(Smallville [\d] Temporada)/g).filter((item) => item ),
+          // $('a').text().split(/((DUBLADO)|(LEGENDADO)|(INGLÊS))/g).filter((item) => item )
+          console.log(i)
+          console.log(
+            temporada
+          )
+          
+          
+          
+          //console.log(`Salvando ${} temporadas de ${} ${(i+1)}`)
+          
+        });
+      }
+      if(error)
+        return error
+      return {message: `Temporadas salvas no banco com sucesso`};
+    });
+  
+    
+}
+
 
 exports.getPreparar = async (serie) => {
   let uri;
@@ -93,13 +122,8 @@ exports.getPreparar = async (serie) => {
   }
 }
 
-exports.getTemporadas = async() => {
-  let uri;
-  let series = await Serie.find({status: false},{_id:1, titulo:1, uriPage:1}, function (err, series) {
-    if (err) console.error(error)
-    return series;
-  });
-  let serie;
+exports.getTemporadas2 = async() => {
+
     for(i=0; i<series.length; i++){
       serie = series[i];
 
@@ -360,8 +384,7 @@ var Base64 = {
           }
         }
         return t}
-      }
-    
+      }    
 
 function urlify(text) {
   //var urlRegex = /(((https?:\/\/)|(www\.))[^\s]+[(.jpg)|(.png)|(.mp4)]$)/g;

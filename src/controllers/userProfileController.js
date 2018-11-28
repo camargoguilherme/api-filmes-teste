@@ -25,8 +25,9 @@ exports.create = (req, res) => {
 };
 
 // Find a single user with a userId
-exports.findOne = (req, res) => {
-  UserProfile.findById(req.params.userId)
+exports.find = (req, res) => {
+  console.log();
+  /*UserProfile.findById(req.params.userId)
   .then(user => {
     if(!user) {
       return res.status(404).send({
@@ -43,7 +44,7 @@ exports.findOne = (req, res) => {
     return res.status(500).send({
       message: "Error retrieving user with id " + req.params.userId
     });
-  });
+  });*/
 };
 
 // Find a single user with a userId

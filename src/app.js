@@ -66,8 +66,11 @@ const prefix = '/api/v1';
 app.get('/', function(req, res, next){
   return res.redirect(prefix)
 })
+app.get(prefix, function(req, res, next){
+  return res.redirect(prefix+'/apidoc')
+})
 
-app.get(prefix, function (req, res, next) {
+app.get(prefix+'/status', function (req, res, next) {
   res.status(200).send({
     title: "Node Express API",
     version: "0.0.1"
