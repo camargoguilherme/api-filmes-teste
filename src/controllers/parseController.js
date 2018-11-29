@@ -10,9 +10,9 @@ exports.getFilmes = async (req, res, next) => {
 };
 
 
-exports.getFilme = async (req, res, next) => {  
+exports.getFilme = (req, res, next) => {  
   let link = req.body.link;
-  let filme =  await parseFilmes.getFilme(link);
+  let filme =  parseFilmes.getFilme(link);
   console.log(link)
   res.status(200).send(
     filme   
