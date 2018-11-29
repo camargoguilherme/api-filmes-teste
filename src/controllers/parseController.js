@@ -23,9 +23,9 @@ exports.getFilme = async (req, res, next) => {
 
 exports.getSeries = async (req, res, next) => { 
   console.log('getSeries')
-  let series = await parseSeries.getSeries(); 
+  let message = await parseSeries.getSeries(); 
   res.status(200).send(
-    series
+    message
   );
 };
 

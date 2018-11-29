@@ -1,17 +1,20 @@
 const request = require('request');
 const cheerio = require('cheerio')
 const fs = require('fs')
+const jsdom = require("jsdom");
+const { JSDOM } = jsdom;
 const urlFile = './series.json';
 const urlFileTeste = './series-teste.json';
 const Serie = require('../models/serieModel')
 const Temporada = require('../models/temporadaModel')
 
 exports.getSeries = (link = 'https://tuaserie.com/') => {
+  let message = null;
   request(link, function (error, response, body) {
     if(response && response.statusCode == 200){
       var $ = cheerio.load(body)
       response = null;
-      $('.image').each(async function(i, elem) {
+      $('.image').each(function(i, elem) {
         let titulo = $(this).children('a').children('img').attr().alt.replace(/&amp;/g, '\&').replace('Assistir', '').trim();
         titulo = titulo.replace(/&amp;/g, '\&');
         titulo = titulo.replace('Assistir', '').trim();
@@ -27,154 +30,54 @@ exports.getSeries = (link = 'https://tuaserie.com/') => {
           temporadas: 0
         }
         if(i > 0){
-          console.log("################################################")
-          console.log(titulo+ " "+ i)
-          series = await insertSerie(serie);   
+          console.log(`${i} - ${titulo}`)
+          insertSerie(serie);   
         }             
       });
     }
     if(error)
-      return error
-    return {message: `Series salvas no banco com sucesso`};
+      message = error
+    message = {message: `Series salvas no banco com sucesso`};
   });
-}
-
-exports.getTemporadas = () => {
-  let uri = 'https://tuaserie.com/serie/assistir-smallville-online.html'
-  /*let series = await Serie.find({status: false},{_id:1, titulo:1, uriPage:1}, function (err, series) {
-    if (err) console.error(error)
-    return series;
-  });*/
-  request(uri, function (error, response, body) {
-      if(response && response.statusCode == 200){
-        var $ = cheerio.load(body)
-        response = null;
-        $('#preview').children('.inner').children('.content').children('header').each(function(i, elem) {
-          //$(this).attr()
-          //$(this).text()
-          //let titulos =  $(this).children('h2').toArray().keys;
-          
-          //  TEMPORADAS
-          // $('h2').text().split(/(Smallville [\d] Temporada)/g).filter((item) => item ),
-          // $('a').text().split(/((DUBLADO)|(LEGENDADO)|(INGLÊS))/g).filter((item) => item )
-          console.log(i)
-          console.log(
-            temporada
-          )
-          
-          
-          
-          //console.log(`Salvando ${} temporadas de ${} ${(i+1)}`)
-          
-        });
-      }
-      if(error)
-        return error
-      return {message: `Temporadas salvas no banco com sucesso`};
-    });
-  
-    
-}
-
-
-exports.getPreparar = async (serie) => {
-  let uri;
-  try {
-    let response = await fetch(serie.url);
-    let responseText = await response.text();
-    let link = 'https://www.blogger.com/video-play.mp4?contentId=';
-    const dom = new JSDOM(responseText);
-    uri = dom.window.document.querySelector('#preview > div > div > header').innerHTML;
-    
-    uri = uri.replace(/(<div class="+[a-z]+">)/g, '');
-    uri = uri.replace(/(<header>)/g, '');
-    uri = uri.replace(/(<[/]header>)/g, '');
-    uri = uri.replace(/(<[/]div>)/g, '');
-    uri = uri.replace(/(<br><br>)/g, '\n');
-    uri = uri.replace(/(<br>)/g, '\n');
-    uri = uri.replace(/(<[/]a>)/g, '');
-    uri = uri.replace(/(<h2>)/g, ', {"titulo" : "');
-    uri = uri.replace(/(<[/]h2>)/g, '", "episodio": [');
-    uri = uri.replace(/(Episódio)/g, ',{ "titulo":"Episódio');
-    uri = uri.replace(/(\[,{+)/g, '[{');
-    uri = uri.replace(/(: <a href="[/])/g, '", "uri":"'+link);
-    uri = uri.replace(/(>)/g, ', "dublado": ');
-    uri = uri.replace(/(\\", "dublado")/g, '", "dublado"')
-    uri = uri.replace(/(DUBLADO)/g, 'true }');
-    uri = uri.replace(/(LEGENDADO)/g, 'false }');
-    uri = uri.replace(/(INGLÊS)/g, 'false }');
-    uri = uri.replace(/(, {+)/g, ']}, {');
-    uri = '#' + uri.trim() + ']}]';
-    uri = uri.replace(/(#]},)/g, '[');
-    //writeFile(`./temporada-teste/${path}.json`, teste);
-    let temporadas = new Array();
-    let temporadasAux = Array();
-    console.log(`Parseando Temporadas de ${serie.titulo}`)
-    temporadas = JSON.parse(uri);
-    temporadas.forEach(temp => {
-      temp.titulo = temp.titulo.replace(serie.titulo, '').trim();
-      temp.episodio = getEpisodio(temp.episodio);
-      temporadasAux.push(temp); 
-    });
-    return temporadasAux;
-  } catch (error) {
-    console.error(error);
-  }
-}
-
-exports.getTemporadas2 = async() => {
-
-    for(i=0; i<series.length; i++){
-      serie = series[i];
-
-      let response = await fetch(series[i].uriPage);
-      let responseText = await response.text();
-      const dom = new JSDOM(responseText);
-      try {
-        uri = dom.window.document.querySelector('#preview > div > div > header').innerHTML;
-      } catch (err) {
-        error.push(serie)
-      }
-      uri = uri.replace(/(<div class="+[a-z]+">)/g, '');
-      uri = uri.replace(/(<header>)/g, '');
-      uri = uri.replace(/(<[/]header>)/g, '');
-      uri = uri.replace(/(<[/]div>)/g, '');
-      uri = uri.replace(/(<br><br>)/g, '\n');
-      uri = uri.replace(/(<br>)/g, '\n');
-      uri = uri.replace(/(<[/]a>)/g, '');
-      uri = uri.replace(/(<h2>)/g, ', {"titulo" : "');
-      uri = uri.replace(/(<[/]h2>)/g, '", "episodio": [');
-      uri = uri.replace(/(Episódio)/g, ',{ "titulo":"Episódio');
-      uri = uri.replace(/(\[,{+)/g, '[{');
-      uri = uri.replace(/(: <a href="[/])/g, '", "uri":"');
-      uri = uri.replace(/(>)/g, ', "dublado": ');
-      uri = uri.replace(/&/g, '\&');
-      uri = uri.replace(/(\\", "dublado")/g, '", "dublado"')
-      uri = uri.replace(/(DUBLADO)/g, 'true }');
-      uri = uri.replace(/(LEGENDADO)/g, 'false }');
-      uri = uri.replace(/(INGLÊS)/g, 'false }');
-      uri = uri.replace(/(, {+)/g, ']}, {');
-      uri = '#' + uri.trim() + ']}]';
-      uri = uri.replace(/(#]},)/g, '[');
-
-      let temporadas = new Array();
-      let temporadasAux = Array();
-
-      temporadas = JSON.parse(uri);
-      temporadas.forEach(temp => {
-        temp.titulo = temp.titulo.replace(series[i].titulo, '').trim();
-        temp.episodio = getEpisodio(temp.episodio);
-        temporadasAux.push(temp); 
-      });
-      console.log(`Salvando ${temporadasAux.length} temporadas de ${series[i].titulo} ${(i+1)}`)
-      await insertTemporadas(series[i]._id, temporadasAux);
-      serie.status = true;
-      serie.temporadas = temporadasAux.length;
-      await insertSerie(serie);
+  let sec = 0
+  let time = setInterval(() => {
+    sec += 1;
+    if(message != null){
+      console.log(`Voce esperou ${sec} segundos`)
+      clearInterval(time)
     }
+  }, 1000);
+  
+  return message;
+}
+
+exports.getTemporadas = async() => {
+  try {
+    let series = await Serie.find({status: false},{_id:1, titulo:1, uriPage:1}, function (err, series) {
+      if(err) 
+        console.error(error)
+      return series;
+    });
     
- 
-  return {message: "Temporadas salvas no banco com sucesso"};
+    let index = 0;
+    let time = setInterval(() => {
+        parseTemporadas(series[index], index+1);
+        index+=1
+        if(index == series.length){
+          clearInterval(time)
+          console.log(`Voce esperou ${parseInt((index/2)/60)} m: ${(index/2)%60} s`)
+        }
+    }, 500); 
+    return {message: `Temporadas salvas no banco com sucesso`};;
+  } catch (err) {
+    return err
+  }
+  
+}
+
+exports.getPreparar = () =>{
+  let sec = 120
+  console.log(`Voce esperou ${sec/60} m: ${parseInt(sec%60)} s`)
 }
 
 function getEpisodio(episodio){
@@ -213,21 +116,68 @@ function getEpisodio(episodio){
   return episodios;
 }
 
-async function insertSerie(serie){
+function parseTemporadas(serie, index){
+  request(serie.uriPage, async function (error, response, body) {
+    if(response && response.statusCode == 200){
   
-  const s = await Serie.findOneAndUpdate({titulo: serie.titulo},
+      const dom = new JSDOM(body);
+      uri = dom.window.document.querySelector('#preview > div > div > header').innerHTML;
+      uri = '#' + uri.trim() + ']}]';
+      uri = uri.replace(/(<div class="+[a-z]+">)/g, '')
+      .replace(/(<header>)/g, '')
+      .replace(/(<[/]header>)/g, '')
+      .replace(/(<[/]div>)/g, '')
+      .replace(/(<br><br>)/g, '\n')
+      .replace(/(<br>)/g, '\n')
+      .replace(/(<[/]a>)/g, '')
+      .replace(/(<h2>)/g, ', {"titulo" : "')
+      .replace(/(<[/]h2>)/g, '", "episodio": [')
+      .replace(/(Episódio)/g, ',{ "titulo":"Episódio')
+      .replace(/(\[,{+)/g, '[{')
+      .replace(/(: <a href="[/])/g, '", "uri":"')
+      .replace(/(>)/g, ', "dublado": ')
+      .replace(/&/g, '\&')
+      .replace(/(\\", "dublado")/g, '", "dublado"')
+      .replace(/(DUBLADO)/g, 'true }')
+      .replace(/(LEGENDADO)/g, 'false }')
+      .replace(/(INGLÊS)/g, 'false }')
+      .replace(/(, {+)/g, ']}, {')
+      .replace(/(#]},)/g, '[');
+
+      let temporadas = new Array();
+
+      temporadas = JSON.parse(uri);
+      temporadas.map(temp => {
+        temp.titulo.replace(serie.titulo, '').trim();
+        temp.episodio = getEpisodio(temp.episodio);
+        return temp
+      });
+      
+      serie.status = true;
+      serie.temporadas = temporadas.length;
+      insertTemporadas(serie._id, temporadas);
+      insertSerie(serie);
+      
+      
+      console.log(`${index} - ${serie.titulo}: ${temporadas.length} temporadas`)
+    }
+  });
+}
+
+function insertSerie(serie){
+  
+  Serie.findOneAndUpdate({titulo: serie.titulo},
     serie,
     {upsert: true},
     function (err, serie) {
       if (err) console.error(error)
       return serie;
     }
-  )
-  return s;
+  ).then()
 };
 
-async function insertTemporadas(serieId, temporadas){
-  const temporada = await Temporada.findOneAndUpdate({serieId: serieId},
+function insertTemporadas(serieId, temporadas){
+  Temporada.findOneAndUpdate({serieId: serieId},
     {
       serieId,
       temporadas
@@ -237,8 +187,7 @@ async function insertTemporadas(serieId, temporadas){
       if (err) console.error(error)
       return temporada;
     }
-  ) 
-  return temporada;
+  ).then()
 };
 
 async function deleteSeriesETemporadas(){
