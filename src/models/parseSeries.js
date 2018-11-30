@@ -5,8 +5,8 @@ const jsdom = require("jsdom");
 const { JSDOM } = jsdom;
 const urlFile = './series.json';
 const urlFileTeste = './series-teste.json';
-const Serie = require('../models/serieModel')
-const Temporada = require('../models/temporadaModel')
+const Serie = require('../models/serieModel');
+const Temporada = require('../models/temporadaModel');
 
 exports.getSeries = (link = 'https://tuaserie.com/') => {
   let message = null;

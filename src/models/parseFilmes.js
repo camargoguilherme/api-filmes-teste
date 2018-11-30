@@ -2,53 +2,110 @@ const request = require('request');
 const cheerio = require('cheerio')
 const jsdom = require("jsdom");
 const { JSDOM } = jsdom; 
-const fs = require('fs')
+const fs = require('fs');
+const Filme = require('../models/filmeModel')
 const urlFile = './filmes.json';
 
-exports.getFilmes = (link = 'http://gofilmes.me/', genero = null, pagina = '1') => {
+exports.getFilmes = (link = 'http://gofilmes.me/') => {
   console.log('getFilmes')
-
-  if(genero != null){
-    genero = `genero/${genero}`
-  }else{
-    genero = ''
-  }
-
-  pagina = `?p=${pagina}`
-  let url = `${link}${genero}${pagina}`
-  console.log('url: '+ url)
   try {
     let filmes = new Array();
-    request(link, function (error, response, body) {
-      if(response && response.statusCode == 200){
-        var $ = cheerio.load(body)
-        
-        $('.poster').each( function(i, elem) {
-
-        filme = {
-          // Titulo do Filme
-          titulo: $(this).children('a').children('img').attr().alt,
-          uri: 'uri',
-          // Link para o filme
-          uriPage: $(this).children('a').attr().href,
-          resumo: 'resumo',
-          img: 'img',
-          // Link para poster
-          posterStart: $(this).children('a').children('img').attr().src,
-        }
-
-        filmes.push(filme);
-          
-        });
-        
-        //writeFile(urlFile, JSON.stringify(filmes));
+    let index = 1
+    let time = setInterval(() => {
+    let aux = getFilmes(link+'?p='+index);
+      aux.map( filme =>{
+        filmes.push(filme)
+      })
+      index+=1
+      if(index > 60){
+        clearInterval(time)
       }
-      return filmes;
-    });
+    }, 15000);
+    
   } catch (error) {
     console.error(error);
   }
 }
+
+function getFilmes(link){
+  try {
+    let filmes = new Array();
+    request(link, function (error, response, body) {
+      console.log(link)
+      if(response && response.statusCode == 200){
+        var $ = cheerio.load(body)
+        $('.poster').each( function(i, elem) {
+          let categoria = new Array()
+            $(this).children().each( function(i, elem) {
+              $(this).children('.t-gen').each( function(i, elem) {
+                categoria.push($(this).text()) 
+              })
+              
+            })
+          filme = {
+            titulo: $(this).children('a').children('img').attr().alt,
+            uriPage: $(this).children('a').attr().href,
+            posterStart: $(this).children('a').children('img').attr().src.replace(/(w)\d+/g, 'w1280'),
+            categoria: categoria
+          }
+          getPropsFilme(filme);
+      
+        });
+      }
+    });
+    return filmes;
+  } catch (error) {
+    console.error(error);
+  }
+} 
+function getPropsFilme(filme){
+  request(filme.uriPage, function (error, response, body) {
+    if(response && response.statusCode == 200){
+      var $ = cheerio.load(body)
+      $('body').each( function(i, elem) {
+        let url = '' + $(this).children('.player').children('#player').children('script') ;
+        try{
+          url = url.match(/(https?:\/\/.*\.(?:png|jpg))/g)[0];
+        }catch(err){
+          url = url.match(/(https?:\/\/.*\.(?:png|jpg))/g);
+        }
+          
+        
+        filme.titulo = $(this).children('.dsk').children('.col-1').children('.capa').attr().alt,
+        filme.resumo = $(this).children('.dsk').children('.col-2').children('.sinopse').text().replace('Sinopse:', '').trim(),
+        filme.posterStart = $(this).children('.dsk').children('.col-1').children('.capa').attr().src.replace(/(w)\d+/g, 'w1280'),
+
+        getUrlFilme(url, filme)
+      })
+    }
+  })
+}
+
+function getUrlFilme(url, filme){
+  
+  request(url, function (error, response, body) {
+    if(response && response.statusCode == 200){
+      var $ = cheerio.load(body)
+      $('body').children('center').children('.align').each( function(i, elem) {
+        filme.uri = urlify('' + $(this))
+        insertFilme(filme);
+        console.log('Filme salvo')
+      })
+    }
+  })
+}
+
+function insertFilme(filme){
+  
+  Filme.findOneAndUpdate({titulo: filme.titulo},
+    filme,
+    {upsert: true},
+    function (err, filme) {
+      if (err) console.error(err)
+      return filme;
+    }
+  ).then()
+};
 
 exports.getFilme = async (url) => {
   console.log('getFilme')
@@ -80,50 +137,26 @@ exports.getFilme = async (url) => {
   }*/
 }
 
-async function getImgURL(href) {
-  console.log('getImgURL')
-  try {
-    let response = await fetch(href);
-    let responseText = await response.text();
 
-    //responseText = JSON.parse(readFileSync('teste.html')); 
 
-    const dom = new JSDOM(responseText);
-    let img = parse(dom.window.document.querySelector('#home_video').innerHTML);
-    let uris = urlify(JSON.stringify(img));
-    console.log('uri img: ' + uris)
-    return uris;
-  } catch (error) {
-    console.error(error);
+
+function urlify(text) {
+  var urlRegex = /(?:(?:https?|ftp):\/\/)(?:(?:[^\s()<>]+|\((?:[^\s()<>]+|(?:\([^\s()<>]+\)))?\))+(?:\((?:[^\s()<>]+|(?:\(?:[^\s()<>]+\)))?\)|[^\s`!()\[\]{};:'".,<>?«»“”‘’]))/g;
+  let dubRegex = /(DUBLADO)|(LEGENDADO)/g
+  let url = text.match(urlRegex);
+  let dub = text.match(dubRegex)
+  let length = url.length;
+  let links = {
+    dublado: new Array(),
+    legendado: new Array()
   }
-}
-
-async function getMovieURL(href) {
-  console.log('getMovieURL')
- 
-  try {
-    let response = await fetch(href);
-    let responseText = await response.text();
-    
-    const dom = new JSDOM(responseText);
-    let links = dom.window.document.querySelector('.align').innerHTML;
-
-    let uris = urlify(links);
-    return uris;
-  } catch (error) {
-    console.error(error);
+  for(i=0; i<length; i++){
+    if(dub[i] == "DUBLADO")
+      links.dublado.push(url[i])
+    else
+      links.legendado.push(url[i])
   }
-}
-
-function urlify(text, img = false) {
-  var urlRegex = /(?:(?:https?|ftp):\/\/)(?:(?:[^\s()<>]+|\((?:[^\s()<>]+|(?:\([^\s()<>]+\)))?\))+(?:\((?:[^\s()<>]+|(?:\(?:[^\s()<>]+\)))?\)|[^\s`!()\[\]{};:'".,<>?«»“”‘’]))/g
-  var urlRegexImg = /(https?:\/\/.*\.(?:png|jpg))/g;
-  let aux = text.match(urlRegex);
-  if(img)
-    aux = text.match(urlRegexImg);
-    
-  console.log(aux)
-  return aux;
+  return links;
 }
 
 function writeFile(path, data){
