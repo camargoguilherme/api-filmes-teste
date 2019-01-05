@@ -61,7 +61,10 @@ UserSchema.methods = {
       username: this.username,
       email: this.email,
       fullname: this.fullname,
-      token: this.createToken()
+      token: this.createToken(),
+      fcm_token: this.fcm_token,
+      avatar: this.avatar,
+      favoritos: this.favoritos
     }
   },
 };
