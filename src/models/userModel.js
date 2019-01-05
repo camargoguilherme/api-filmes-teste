@@ -29,8 +29,8 @@ var UserSchema = new mongoose.Schema({
   },
   token: String,
   fcm_token: String,
-  favoritos: [],
-  avatar: []
+  favoritos: Array,
+  avatar: Array
 });
 
 UserSchema.pre('save', function(next) {
