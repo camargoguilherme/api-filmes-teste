@@ -30,7 +30,7 @@ var UserSchema = new mongoose.Schema({
   token: String,
   fcm_token: String,
   favoritos: Array,
-  avatar: Array
+  avatar: JSON
 });
 
 UserSchema.pre('save', function(next) {
