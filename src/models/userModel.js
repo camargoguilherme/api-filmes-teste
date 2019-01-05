@@ -26,7 +26,11 @@ var UserSchema = new mongoose.Schema({
   admin:{
     type: Boolean,
     required: true
-  }
+  },
+  token: String,
+  fcm_token: String,
+  favoritos: [],
+  avatar: []
 });
 
 UserSchema.pre('save', function(next) {

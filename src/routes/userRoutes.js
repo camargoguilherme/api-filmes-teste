@@ -1,23 +1,23 @@
 const express = require('express');
 const router = express.Router();
-const users = require('../controllers/userController');
+const user = require('../controllers/userController');
 var { isAdmin } = require('../auth/authServices');
 
-const prefix = '/users'
+const prefix = '/user'
 
 // Create a new User
-router.post(prefix, users.create);
+router.post(prefix, user.create);
 
-// Retrieve all Users
-router.get(prefix, users.findAll);
+// Retrieve all user
+router.get(prefix, user.findAll);
 
 // Retrieve a single User with userId
-router.get(prefix+'/:userId', users.findOne);
+router.get(prefix+'/:userId', user.findOne);
 
 // Update a User with userId
-router.put(prefix+'/:userId', users.update);
+router.put(prefix+'/:userId', user.update);
 
 // Delete a User with userId
-router.delete(prefix+'/:userId', users.delete);
+router.delete(prefix+'/:userId', user.delete);
 
 module.exports = router;

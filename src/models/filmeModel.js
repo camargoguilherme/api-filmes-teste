@@ -8,6 +8,7 @@ const FilmeSchema = mongoose.Schema({
         trim: true
       },
     uri: {},
+    referer: String,
     uriPage: String,
     resumo: String,
     posterStart: String,
