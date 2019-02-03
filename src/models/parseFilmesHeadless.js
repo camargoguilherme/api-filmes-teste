@@ -54,7 +54,7 @@ async function getFilmes(linkSite, pagina){
 
 async function getPropsFilme(link){
     try{
-      const browser = await puppeteer.launch({headless: true});
+      const browser = await puppeteer.launch({headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox']});
       const page = await browser.newPage();
       //await page.setRequestInterception(true);
       
