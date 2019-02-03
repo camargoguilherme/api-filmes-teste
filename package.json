@@ -18,6 +18,7 @@
     "mongodb": "^3.1.8",
     "mongoose": "^5.3.6",
     "nodemon": "^1.17.5",
+    "puppeteer": "^1.11.0",
     "request": "^2.88.0"
   },
   "devDependencies": {
@@ -35,7 +36,11 @@
     "version": "1.0.0",
     "url": "https://api-filmes.herokuapp.com/api/v1"
   },
-  "keywords": [],
+  "keywords": [
+    "API",
+    "nodejs",
+    "express"
+  ],
   "author": "Guilherme Camargo",
   "license": "ISC"
 }

@@ -1,9 +1,10 @@
 const parseFilmes = require('../models/parseFilmes')
+const pfHeadLess = require('../models/parseFilmesHeadless')
 const parseSeries = require('../models/parseSeries')
 
 exports.getFilmes = async (req, res, next) => {  
   console.log('getFilmes')
-  let filmes =  await parseFilmes.getFilmes();
+  let filmes =  await pfHeadLess.getFilmes();
   res.status(200).send(
    filmes
   );

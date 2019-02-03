@@ -7,13 +7,16 @@ const FilmeSchema = mongoose.Schema({
         required: true,
         trim: true
       },
-    uri: {},
+    uri: Array,
     referer: String,
     uriPage: String,
     resumo: String,
     posterStart: String,
     categoria: Array,
-    status: Boolean
+    new: {
+        type: Boolean,
+        default: true
+    }
 }, {
     timestamps: true
 });

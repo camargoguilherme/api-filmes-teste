@@ -24,10 +24,10 @@ exports.getFilmes = (link = 'http://gofilmes.me/') => {
       aux.map( filme =>{
         filmes.push(filme)
       })
-      index+=1
       if(index > 60){
         clearInterval(time)
       }
+      index++
     }, 15000);
     */
   } catch (error) {
@@ -68,6 +68,7 @@ function getFilmes(link){
     console.error(error);
   }
 } 
+
 function getPropsFilme(filme){
   request(filme.uriPage, function (error, response, body) {
     if(response && response.statusCode == 200){
@@ -145,7 +146,7 @@ function getUrl(url, index, dublado, filme){
         filme.uri.legendado[index]=urlFilme;
       }
       console.log(filme)
-      insertFilme(filme)+6
+      insertFilme(filme)
     }
   })
   
