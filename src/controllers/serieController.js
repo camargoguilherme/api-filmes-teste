@@ -1,120 +1,80 @@
-const Serie = require('../models/serieModel');
-const Temporada = require('../models/temporadaModel');
+const Serie = require('../models/serie');
+const Temporada = require('../models/temporada');
+const Episodio = require('../models/episodio');
 
-// Create and Save a new Serie
-exports.create = (req, res) => {
-    // Validate request
+class SerieController{
     
-    if(!req.body.serie) {
-        return res.status(400).send({
-            message: "As informacoes da série não pode ser vazio"
-        });
-    }
-    
-    // Create a Serie
-    const serie = new Serie({
-        titulo: req.body.serie.titulo || "Untitled Serie",
-        path: req.body.serie.path,
-        posterStart: req.body.serie.posterStart,
-        uriPage: req.body.serie.uriPage
-    });
+    // Create and Save a new Serie
+    async create(req, res){
+        const { serie } = req.body
+        if(!serie) {
+            return res.status(400).send({
+                message: "As informacoes da série não pode ser vazio"
+            })
+        }
+        
+        // Create a Serie
+        const serie = new Serie(serie)
+        await serie.save()
+        res.json(serie)
+    };
 
-    // Save Serie in the database
-    serie.save()
-    .then(data => {
-        res.send(data)
-    }).catch(err => {
-        res.status(500).send({
-            message: err.message || "Some error occurred while creating the Serie."
-        });
-    })
-};
+    // Retrieve and return all series from the database.
+    async findAll(req, res){
+        const serie = await Serie.find({}, {_id:1, titulo:1, uriPage:1, path:1, posterStart:1, status:1, temporadas:1})
+        res.json(serie)
+    };
 
-// Retrieve and return all series from the database.
-exports.findAll = (req, res) => {
-    Serie.find({}, {_id:1, titulo:1, uriPage:1, path:1, posterStart:1, status:1, temporadas:1})
-    .then(series => {
-        res.send(series);
-    }).catch(err => {
-        res.status(500).send({
-            message: err.message || "Some error occurred while retrieving series."
-        });
-    });
-};
-
-// Find a single serie with a serieId
-exports.findOne = (req, res) => {
-    Serie.findById(req.params.serieId)
-    .then(serie => {
+    // Find a single serie with a serieId
+    async findOne(req, res){
+        const { serieId } = req.params
+        const serie = await Serie.findById(serieId)
+        
         if(!serie) {
             return res.status(404).send({
                 message: "Serie not found with id " + req.params.serieId
             });            
         }
-        res.send(serie);
-    }).catch(err => {
-        if(err.kind === 'ObjectId') {
-            return res.status(404).send({
-                message: "Serie not found with id " + req.params.serieId
-            });                
-        }
-        return res.status(500).send({
-            message: "Error retrieving serie with id " + req.params.serieId
-        });
-    });
-};
+        res.json(serie);
+        
+    };
 
-// Update a serie identified by the serieId in the request
-exports.update = (req, res) => {
-    // Validate Request
-    if(!req.body.content) {
-        return res.status(400).send({
-            message: "Serie content can not be empty"
-        });
-    }
-
-    // Find serie and update it with the request body
-    Serie.findByIdAndUpdate(req.params.serieId, {
-        title: req.body.title || "Untitled Serie",
-        content: req.body.content
-    }, {new: true})
-    .then(serie => {
+    // Update a serie identified by the serieId in the request
+    async update(req, res){
+        const { serie } = req.body
         if(!serie) {
+            return res.status(400).send({
+                message: "Serie content can not be empty"
+            });
+        }
+
+        // Find serie and update it with the request body
+        const updated = await Serie.findByIdAndUpdate(req.params.serieId, {
+            title: req.body.title || "Untitled Serie",
+            content: req.body.content
+        }, {new: true})
+        
+        if(!updated) {
             return res.status(404).send({
                 message: "Serie not found with id " + req.params.serieId
             });
         }
-        res.send(serie);
-    }).catch(err => {
-        if(err.kind === 'ObjectId') {
-            return res.status(404).send({
-                message: "Serie not found with id " + req.params.serieId
-            });                
-        }
-        return res.status(500).send({
-            message: "Error updating serie with id " + req.params.serieId
-        });
-    });
-};
+        res.json({serie: updated, message: "Serie deleted successfully!"});
+       
+    };
 
-// Delete a serie with the specified serieId in the request
-exports.delete = (req, res) => {
-    Serie.findByIdAndRemove(req.params.serieId)
-    .then(serie => {
-        if(!serie) {
+    // Delete a serie with the specified serieId in the request
+    async delete(req, res){
+        const { serieId } = req.params
+        const serieDeleted = await Serie.findByIdAndRemove(serieId).populate('Temporada')
+        const seaseonDeleted = await Temporada.findByIdAndRemove(serieDeleted.temporada)       
+        if(!serieDeleted) {
             return res.status(404).send({
-                message: "Serie not found with id " + req.params.serieId
+                message: "Serie not found with id " + serieId
             });
         }
-        res.send({message: "Serie deleted successfully!"});
-    }).catch(err => {
-        if(err.kind === 'ObjectId' || err.name === 'NotFound') {
-            return res.status(404).send({
-                message: "Serie not found with id " + req.params.serieId
-            });                
-        }
-        return res.status(500).send({
-            message: "Could not delete serie with id " + req.params.serieId
-        });
-    });
-};
+        res.json({serie: serieDeleted, message: "Serie deleted successfully!"});
+        
+    };
+
+}

@@ -1,13 +1,15 @@
 const mongoose = require('mongoose');
 
 const TemporadaSchema = mongoose.Schema({
-    serieId: {
-        type: String,
-        unique: true,
-        required: true,
-        trim: true
-    },
-    temporadas: []
+    title:{
+      type: String,
+			required: true,
+			trim: true
+		},
+		episodios:[{
+			type: mongoose.Schema.Types.ObjectId,
+			ref: 'Episodio'
+		}]
 }, {
     timestamps: true
 });

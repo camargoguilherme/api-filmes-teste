@@ -32,7 +32,7 @@ define({ "api": [
       }
     },
     "version": "0.0.0",
-    "filename": "src/routes/indexRoutes.js",
+    "filename": "src/routes/index.js",
     "groupTitle": "Auth",
     "name": "GetLogout"
   },
@@ -76,7 +76,7 @@ define({ "api": [
       ]
     },
     "version": "0.0.0",
-    "filename": "src/routes/indexRoutes.js",
+    "filename": "src/routes/index.js",
     "groupTitle": "Auth",
     "name": "PostAuthenticated"
   },
@@ -136,7 +136,7 @@ define({ "api": [
       ]
     },
     "version": "0.0.0",
-    "filename": "src/routes/indexRoutes.js",
+    "filename": "src/routes/index.js",
     "groupTitle": "Auth",
     "name": "PostLogin"
   },
@@ -196,30 +196,13 @@ define({ "api": [
       ]
     },
     "version": "0.0.0",
-    "filename": "src/routes/indexRoutes.js",
+    "filename": "src/routes/index.js",
     "groupTitle": "Auth",
     "name": "PostSignup"
   },
   {
     "type": "get",
-    "url": "/parse-filmes",
-    "title": "Parsear Filmes",
-    "group": "Parse",
-    "permission": [
-      {
-        "name": "admin",
-        "title": "Acesso permitido para admins",
-        "description": "<p>O acesso a esse endpoint é permitido apenas para usuários admin</p>"
-      }
-    ],
-    "version": "0.0.0",
-    "filename": "src/routes/parseRoutes.js",
-    "groupTitle": "Parse",
-    "name": "GetParseFilmes"
-  },
-  {
-    "type": "get",
-    "url": "/parse-preparar",
+    "url": "/parse/preparar",
     "title": "Teste do parse",
     "group": "Parse",
     "permission": [
@@ -230,13 +213,13 @@ define({ "api": [
       }
     ],
     "version": "0.0.0",
-    "filename": "src/routes/parseRoutes.js",
+    "filename": "src/routes/parser.js",
     "groupTitle": "Parse",
     "name": "GetParsePreparar"
   },
   {
     "type": "get",
-    "url": "/parse-series",
+    "url": "/parse/series",
     "title": "Parsear Temporadas",
     "group": "Parse",
     "permission": [
@@ -247,13 +230,13 @@ define({ "api": [
       }
     ],
     "version": "0.0.0",
-    "filename": "src/routes/parseRoutes.js",
+    "filename": "src/routes/parser.js",
     "groupTitle": "Parse",
     "name": "GetParseSeries"
   },
   {
     "type": "get",
-    "url": "/parse-series",
+    "url": "/parse/series",
     "title": "Parsear Series",
     "group": "Parse",
     "permission": [
@@ -264,9 +247,26 @@ define({ "api": [
       }
     ],
     "version": "0.0.0",
-    "filename": "src/routes/parseRoutes.js",
+    "filename": "src/routes/parser.js",
     "groupTitle": "Parse",
     "name": "GetParseSeries"
+  },
+  {
+    "type": "get",
+    "url": "/parser/filmes",
+    "title": "Parsear Filmes",
+    "group": "Parser",
+    "permission": [
+      {
+        "name": "admin",
+        "title": "Acesso permitido para admins",
+        "description": "<p>O acesso a esse endpoint é permitido apenas para usuários admin</p>"
+      }
+    ],
+    "version": "0.0.0",
+    "filename": "src/routes/parser.js",
+    "groupTitle": "Parser",
+    "name": "GetParserFilmes"
   },
   {
     "type": "delete",
@@ -303,7 +303,7 @@ define({ "api": [
       ]
     },
     "version": "0.0.0",
-    "filename": "src/routes/serieRoutes.js",
+    "filename": "src/routes/series.js",
     "groupTitle": "Series",
     "name": "DeleteSeriesSerieid",
     "header": {
@@ -414,7 +414,7 @@ define({ "api": [
       }
     },
     "version": "0.0.0",
-    "filename": "src/routes/serieRoutes.js",
+    "filename": "src/routes/series.js",
     "groupTitle": "Series",
     "name": "GetSeries",
     "header": {
@@ -538,7 +538,7 @@ define({ "api": [
       }
     },
     "version": "0.0.0",
-    "filename": "src/routes/serieRoutes.js",
+    "filename": "src/routes/series.js",
     "groupTitle": "Series",
     "name": "GetSeriesSerieid",
     "header": {
@@ -639,7 +639,7 @@ define({ "api": [
       ]
     },
     "version": "0.0.0",
-    "filename": "src/routes/serieRoutes.js",
+    "filename": "src/routes/series.js",
     "groupTitle": "Series",
     "name": "PostSeries",
     "header": {
@@ -744,7 +744,7 @@ define({ "api": [
       ]
     },
     "version": "0.0.0",
-    "filename": "src/routes/serieRoutes.js",
+    "filename": "src/routes/series.js",
     "groupTitle": "Series",
     "name": "PutSeriesSerieid",
     "header": {

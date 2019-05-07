@@ -1,4 +1,7 @@
-require('dotenv').config();
+if(process.env.NODE_ENV === 'DEVELOPMENT' ){
+	dotenv = require('dotenv');
+	dotenv.config();
+}
 
 normalizaPort = (val) => {
   const port = parseInt(val, 10);
