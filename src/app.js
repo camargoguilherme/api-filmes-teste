@@ -38,12 +38,12 @@ app.use(cors());
 app.use(compression());
 
 //Rotas
-const indexRoutes = require('./routes/indexRoutes');
-const parseRoutes = require('./routes/parseRoutes');
-const filmeRoutes = require('./routes/filmeRoutes');
-const serieRoutes = require('./routes/serieRoutes');
-const temporadaRoutes = require('./routes/temporadaRoutes');
-const userRoutes = require('./routes/userRoutes');
+// const index = require('./routes/index');
+const parser = require('./routes/parser');
+// const filme = require('./routes/filmes');
+// const serie = require('./routes/series');
+// const temporada = require('./routes/temporadas');
+// const user = require('./routes/user');
 
 app.use(bodyParser.json()); // support json encoded bodies
 app.use(bodyParser.urlencoded({ extended: true })); // support encoded bodies
@@ -77,13 +77,13 @@ app.get(prefix+'/status', function (req, res, next) {
   });
 });
 app.use(prefix, express.static("public"))
-app.use(prefix, indexRoutes);
-app.use(isAuthenticate);
-app.use(prefix, parseRoutes);
-app.use(prefix, filmeRoutes);
-app.use(prefix, serieRoutes );
-app.use(prefix, temporadaRoutes);
-app.use(prefix, userRoutes);
+// app.use(prefix, index);
+// app.use(isAuthenticate);
+app.use(prefix, parser);
+// app.use(prefix, filmes);
+// app.use(prefix, series );
+// app.use(prefix, temporada);
+// app.use(prefix, user);
 
 /*
 //use sessions for tracking logins

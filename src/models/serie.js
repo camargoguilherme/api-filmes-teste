@@ -1,17 +1,19 @@
 const mongoose = require('mongoose');
 
 const SerieSchema = mongoose.Schema({
-    titulo:{
+    title:{
         type: String,
         unique: true,
         required: true,
         trim: true
     },
-    path: String,
     posterStart: String,
-    uriPage: String,
+    resume: String,
     status: Boolean,
-    temporadas: Number
+    seaseons: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Temporada'
+    }],
 }, {
     timestamps: true
 });

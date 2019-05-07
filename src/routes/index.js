@@ -1,6 +1,6 @@
 const { Router } = require('express');
 const router = new Router();
-var User = require('../models/userModel');
+var User = require('../models/user');
 var jwt = require('jsonwebtoken');  
 var { isAuthenticate, authenticate } = require('../auth/authServices');
 
