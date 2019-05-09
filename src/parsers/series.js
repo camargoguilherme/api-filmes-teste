@@ -1,12 +1,12 @@
-const request = require('request')
+const request = require('request');
 const cheerio = require('cheerio')
-const fs = require('fs')
 const jsdom = require("jsdom");
-const { JSDOM } = jsdom;
+const { JSDOM } = jsdom; 
+const fs = require('fs');
 const puppeteer = require('puppeteer');
 
-const urlFile = './series/';
-const urlFileTeste = './series-teste.json';
+const urlFileSerie = './series/';
+const urlFileTemporada = './temporadas/';
 
 const Serie = require('../models/serie');
 const Temporada = require('../models/temporada');
@@ -16,9 +16,9 @@ const MESSAGE_SERIE = { status: '', message: 'Series salvas no banco com sucesso
 const MESSAGE_TEMPORADA = { status: '', message: 'Temporadas salvas no banco com sucesso'};
 const args = 
   ["--disable-gpu",
-  "--disable-setuid-sandbox",
-  "--force-device-scale-factor",
-  "--ignore-certificate-errors",
+  //"--disable-setuid-sandbox",
+  //"--force-device-scale-factor",
+  //"--ignore-certificate-errors",
   "--no-sandbox"];
 
 const CONFIG_PUPPETEER = {
@@ -32,7 +32,7 @@ class ParserSeries{
     const link = 'https://www.rjseries.com'
     const uriPage = 'https://www.rjseries.com/supernatural-assistir/'
     //prepareSerie(link)
-    prepareTemporadas({uriPage})
+    await this.prepareTemporadas({uriPage})
 
     let sec = 0
     const time = setInterval(() => {
@@ -206,76 +206,90 @@ class ParserSeries{
     return aux;
   }
 
-}
-// Função para preparar as Series
-function prepareSerie(LINK_SERIE = null){
-  if(LINK_SERIE){
-    request(LINK_SERIE, function (error, response, body) {
+  // Função para preparar as Series
+  async prepareSerie(LINK_SERIE = null){
+    if(LINK_SERIE){
+      request(LINK_SERIE, function (error, response, body) {
+        if(response && response.statusCode == 200){
+          var $ = cheerio.load(body)
+          
+          $('ul.lista-filmes').children().each(function(i, elem) {
+            let title = $(this).children('.titulo-box').children('h2').children('a').text().replace(/\W+/g, '_')
+            let uriPage = $(this).children('div').children('h2').children('a').attr().href;
+            let posterStart = $(this).children('.capa').children('img').attr().src;
+            // let urlFileTemporada = title.replace(/\W+/g, '_');
+            const serie = {
+              title,
+              uriPage,
+              posterStart
+            }
+            //writeFile(`${urlFile}${title}.json`, JSON.stringify(serie))      
+          });
+          const NEXT = $('div.navigation').children('a.next').attr() ? $('div.navigation').children('a.next').attr().href : null;
+          if(NEXT){
+            console.log('next link: '+ NEXT)
+            prepareSerie(NEXT)
+          }
+        }
+        if(error){
+          MESSAGE_SERIE.status = 'error'
+          MESSAGE_SERIE.message = error
+        }
+        MESSAGE_SERIE.status = 'successful'
+      });
+    }
+  }
+
+  // Função para preparar as Temporadas
+  async prepareTemporadas({uriPage}){
+    
+    request(uriPage, function (error, response, body) {
       if(response && response.statusCode == 200){
         var $ = cheerio.load(body)
         
-        $('ul.lista-filmes').children().each(function(i, elem) {
-          let title = $(this).children('.titulo-box').children('h2').children('a').text().replace(/\W+/g, '_')
-          let uriPage = $(this).children('div').children('h2').children('a').attr().href;
-          let posterStart = $(this).children('.capa').children('img').attr().src;
-          // let urlFileTemporada = title.replace(/\W+/g, '_');
-          const serie = {
-            title,
-            uriPage,
-            posterStart
-          }
-          //writeFile(`${urlFile}${title}.json`, JSON.stringify(serie))      
+        $('div.tab_container').children().each(async function(i, elem) {
+          const t = i + 1
+          const temporada = await Temporada.findOneAndUpdate({title: `${t}ª Temporada`}, {title: `${t}ª Temporada`}, { title: 1, episodios: 1, upsert: true })
+          
+          $(this).children().each(async function(i, elem) {
+            if($(this).children().children().children('strong').text() == 'DUBLADO'){
+              $(this).children().children().children('li').each( async function(i, elem){
+                
+                const title = $(this).children('a').text() + ' - ' +$(this).children('a').attr().title.split(' - ')[1]
+                const url = $(this).children('a').attr().href
+                const dublado = true
+                const episodio = await Episodio.create({title, url, dublado})
+                temporada.episodios.push(episodio)
+              
+              })
+            }
+            if($(this).children().children().children('strong').text() == 'LEGENDADO'){
+              $(this).children().children().children('li').each( async function(i, elem){
+                
+                const title = $(this).children('a').text() + ' - ' +$(this).children('a').attr().title.split(' - ')[1]
+                const url = $(this).children('a').attr().href
+                const dublado = false
+                const episodio = await Episodio.create({title, url, dublado})
+                temporada.episodios.push(episodio)
+              
+              })
+            }
+            await temporada.save()
+          })
+          
+          
         });
-        const NEXT = $('div.navigation').children('a.next').attr() ? $('div.navigation').children('a.next').attr().href : null;
-        if(NEXT){
-          console.log('next link: '+ NEXT)
-          prepareSerie(NEXT)
-        }
+        
       }
       if(error){
-        MESSAGE_SERIE.status = 'error'
-        MESSAGE_SERIE.message = error
+        MESSAGE_TEMPORADA.status = 'error'
+        MESSAGE_TEMPORADA.message = error
       }
-      MESSAGE_SERIE.status = 'successful'
+      MESSAGE_TEMPORADA.status = 'successful'
     });
   }
+
 }
-
-// Função para preparar as Temporadas
-async function prepareTemporadas({uriPage}){
-  var browser
-  try{
-    browser = await puppeteer.launch(CONFIG_PUPPETEER);
-    const page = await browser.newPage();
-    
-    await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36');
-    
-    await page.goto(uriPage);
-
-    await page.waitForSelector('.tabs');
-    const TABS = await page.evaluate(() => {
-      do{
-        alert('TABS: '+document.querySelector('.tabs'))
-        console.log('TABS: '+document.querySelector('.tabs'))
-        return document.querySelector('.tabs')
-      }while(document.readyState !== 'complete')
-    })
-    
-    console.log(TABS)
-    MESSAGE_TEMPORADA.status = 'successful'
-    //browser.close();
-  }catch(error) {
-    
-    MESSAGE_TEMPORADA.status = 'error'
-    MESSAGE_TEMPORADA.message = error
-    
-    console.error(MESSAGE_TEMPORADA);    
-    browser.close();
-  }finally{
-    //browser.close();
-  }
-}
-
 
 
 function writeFile(path, data){

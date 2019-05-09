@@ -3,19 +3,22 @@ const cheerio = require('cheerio')
 const jsdom = require("jsdom");
 const { JSDOM } = jsdom; 
 const fs = require('fs');
-const Filme = require('../models/filmeModel');
+const Filme = require('../models/filme');
 const puppeteer = require('puppeteer');
 const urlFile = './filmes.json';
 
 class ParserFilmesHeadless{
 
-  async getFilmes(link = 'https://megaseriehd.com/filme'){
-    for(i = 2; i < 45; i++){
-      getFilmes(link, i);
-    }
+  async getFilmes(req, res, next){
+    const link = 'https://megaseriehd.com/filme'
+    // for(let i = 2; i < 45; i++){
+    //   this.getFilme(link, i);
+    // }
+    this.getPropsFilme('https://megaseriehd.com/series/sword-art-online-alternative-gun-gale-online/');
+    res.json({message: 'Filmes Prontos'});
   }
   
-  async getFilmes(linkSite, pagina){
+  async getFilme(linkSite, pagina){
     try {
       let arrayUrlMovie = [];
       request(`${linkSite}/page/${pagina}/`, function (error, response, body) {
@@ -38,7 +41,7 @@ class ParserFilmesHeadless{
           }
           if(iterar){
             iterar = false; 
-            getPropsFilme(arrayUrlMovie[index])
+            this.getPropsFilme(arrayUrlMovie[index])
             .then(run => {
               iterar = run;
             }); 
@@ -71,6 +74,7 @@ class ParserFilmesHeadless{
         await page.goto(link);
   
         let props = await page.evaluate(() => {
+
           let titulo = document.querySelector('div.sheader > div.data > h1').innerText;
           let posterStart = document.querySelector('div.poster').innerHTML;
           let categoria = document.querySelector('div.sgeneros').innerText.split('\n');
@@ -84,7 +88,7 @@ class ParserFilmesHeadless{
           }
   
         });
-  
+        console.log(props)
         let countLinks = await page.evaluate(() => {
           return document.querySelector('#playeroptionsul').childElementCount;
         });
@@ -226,3 +230,4 @@ class ParserFilmesHeadless{
   }
 }
 
+module.exports = new ParserFilmesHeadless();

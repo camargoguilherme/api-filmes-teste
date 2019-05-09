@@ -14,9 +14,7 @@ var { isAdmin } = require('../auth/authServices');
  * @apiPermission admin
  */
 
-router.get('/parser/filmes');
-
-router.post('parser/filmes');
+router.get('/parser/filmes', parserController.filmes);
 
 /**
  * @api {get} /parse/series Parsear Series
