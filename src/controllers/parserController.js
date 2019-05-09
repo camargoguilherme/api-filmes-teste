@@ -1,18 +1,15 @@
 //const parseFilmes = require('../parsers/filmes')
-//const pfHeadLess = require('../parsers/filmesHeadless')
+const pfHeadLess = require('../parsers/filmesHeadless')
 const parserSeries = require('../parsers/series')
 
 class ParserController{
-  async getFilmes(req, res, next){  
-    console.log('getFilmes')
-    let filmes =  await pfHeadLess.getFilmes();
-    res.status(200).send(
-     filmes
-    );
+  async filmes(req, res, next){  
+    console.log('Preparando Filmes')
+    pfHeadLess.getFilmes(req, res, next);
   };
   
   
-  async getFilme(req, res, next){  
+  async filme(req, res, next){  
     let link = req.body.link;
     let filme =  parseFilmes.getFilme(link);
     console.log(link)
