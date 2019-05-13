@@ -10,10 +10,13 @@ const SerieSchema = mongoose.Schema({
     posterStart: String,
     resume: String,
     status: Boolean,
-    seaseons: [{
+    seasons: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Temporada'
     }],
+    category:[{
+        type: String
+    }]
 }, {
     timestamps: true
 });

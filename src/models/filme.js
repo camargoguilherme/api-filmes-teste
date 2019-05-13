@@ -12,7 +12,9 @@ const FilmeSchema = mongoose.Schema({
     uriPage: String,
     resumo: String,
     posterStart: String,
-    categoria: Array,
+    category:[{
+        type: String
+    }],
     new: {
         type: Boolean,
         default: true
