@@ -31,8 +31,8 @@ class ParserSeries{
   async series(req, res){
     const link = 'https://www.rjseries.com'
     const uriPage = 'https://www.rjseries.com/supernatural-assistir/'
-    //prepareSerie(link)
-    await this.prepareTemporadas({uriPage})
+    prepareSerie(link)
+    //prepareTemporadas({uriPage})
 
     let sec = 0
     const time = setInterval(() => {
@@ -205,90 +205,101 @@ class ParserSeries{
     console.log(text);
     return aux;
   }
+}
 
-  // Função para preparar as Series
-  async prepareSerie(LINK_SERIE = null){
-    if(LINK_SERIE){
-      request(LINK_SERIE, function (error, response, body) {
-        if(response && response.statusCode == 200){
-          var $ = cheerio.load(body)
-          
-          $('ul.lista-filmes').children().each(function(i, elem) {
-            let title = $(this).children('.titulo-box').children('h2').children('a').text().replace(/\W+/g, '_')
-            let uriPage = $(this).children('div').children('h2').children('a').attr().href;
-            let posterStart = $(this).children('.capa').children('img').attr().src;
-            // let urlFileTemporada = title.replace(/\W+/g, '_');
-            const serie = {
-              title,
-              uriPage,
-              posterStart
-            }
-            //writeFile(`${urlFile}${title}.json`, JSON.stringify(serie))      
-          });
-          const NEXT = $('div.navigation').children('a.next').attr() ? $('div.navigation').children('a.next').attr().href : null;
-          if(NEXT){
-            console.log('next link: '+ NEXT)
-            prepareSerie(NEXT)
-          }
-        }
-        if(error){
-          MESSAGE_SERIE.status = 'error'
-          MESSAGE_SERIE.message = error
-        }
-        MESSAGE_SERIE.status = 'successful'
-      });
-    }
-  }
-
-  // Função para preparar as Temporadas
-  async prepareTemporadas({uriPage}){
-    
-    request(uriPage, function (error, response, body) {
+// Função para preparar as Series
+async function prepareSerie(LINK_SERIE = null){
+  MESSAGE_SERIE.status = 'successful'
+  
+  if(LINK_SERIE){
+    request(LINK_SERIE, async function (error, response, body) {
       if(response && response.statusCode == 200){
         var $ = cheerio.load(body)
         
-        $('div.tab_container').children().each(async function(i, elem) {
-          const t = i + 1
-          const temporada = await Temporada.findOneAndUpdate({title: `${t}ª Temporada`}, {title: `${t}ª Temporada`}, { title: 1, episodios: 1, upsert: true })
-          
-          $(this).children().each(async function(i, elem) {
-            if($(this).children().children().children('strong').text() == 'DUBLADO'){
-              $(this).children().children().children('li').each( async function(i, elem){
-                
-                const title = $(this).children('a').text() + ' - ' +$(this).children('a').attr().title.split(' - ')[1]
-                const url = $(this).children('a').attr().href
-                const dublado = true
-                const episodio = await Episodio.create({title, url, dublado})
-                temporada.episodios.push(episodio)
-              
-              })
-            }
-            if($(this).children().children().children('strong').text() == 'LEGENDADO'){
-              $(this).children().children().children('li').each( async function(i, elem){
-                
-                const title = $(this).children('a').text() + ' - ' +$(this).children('a').attr().title.split(' - ')[1]
-                const url = $(this).children('a').attr().href
-                const dublado = false
-                const episodio = await Episodio.create({title, url, dublado})
-                temporada.episodios.push(episodio)
-              
-              })
-            }
-            await temporada.save()
-          })
-          
-          
+        $('ul.lista-filmes').children().each(async function(i, elem) {
+          let title = $(this).children('.titulo-box').children('h2').children('a').text()
+          let uriPage = $(this).children('div').children('h2').children('a').attr().href;
+          let posterStart = $(this).children('.capa').children('img').attr().src;
+          // let urlFileTemporada = title.replace(/\W+/g, '_');
+          const serie = {
+            title,
+            uriPage,
+            posterStart
+          }
+          console.log(serie)
+          await prepareTemporadas(serie)    
         });
-        
+        const NEXT = $('div.navigation').children('a.next').attr() ? $('div.navigation').children('a.next').attr().href : null;
+        if(NEXT){
+          console.log('next link: '+ NEXT)
+          await prepareSerie(NEXT)
+        }
       }
       if(error){
-        MESSAGE_TEMPORADA.status = 'error'
-        MESSAGE_TEMPORADA.message = error
+        MESSAGE_SERIE.status = 'error'
+        MESSAGE_SERIE.message = error
       }
-      MESSAGE_TEMPORADA.status = 'successful'
     });
-  }
 
+  }
+}
+
+// Função para preparar as Temporadas
+async function prepareTemporadas({title, uriPage, posterStart}){    
+  MESSAGE_TEMPORADA.status = 'successful'
+  request(uriPage, async function (error, response, body) {
+    if(response && response.statusCode == 200){
+      var $ = cheerio.load(body)
+      const category = []
+      $('span.categoria-video > a').each( function(i, elem){
+        category.push($(this).text())
+      })
+      const resume = $('.esquerdavideox > .content-single > p').text()
+      resume.substring(0, resume.indexOf(' Ler mais sobre'))
+      
+      const serie = await Serie.findOneAndUpdate({ title }, { title, category, posterStart, resume }, { upsert: true })
+      $('div.tab_container').children().each(async function(i, elem) {
+        const t = i + 1
+        
+        
+        const temporada = await Temporada.findOneAndUpdate({title: `${t}ª Temporada`}, {title: `${t}ª Temporada`}, { title: 1, episodios: 1, upsert: true })
+              
+        $(this).children().each(async function(i, elem) {
+          if($(this).children().children().children('strong').text() == 'DUBLADO'){
+            $(this).children().children().children('li').each( async function(i, elem){
+              
+              const title = $(this).children('a').text() + ' - ' +$(this).children('a').attr().title.split(' - ')[1]
+              const url = $(this).children('a').attr().href
+              const dublado = true
+              const episodio = await Episodio.create({title, url, dublado})
+              temporada.episodios.push(episodio)
+            
+            })
+          }
+          if($(this).children().children().children('strong').text() == 'LEGENDADO'){
+            $(this).children().children().children('li').each( async function(i, elem){
+              
+              const title = $(this).children('a').text() + ' - ' + $(this).children('a').attr().title.split(' - ')[1]
+              const url = $(this).children('a').attr().href
+              const dublado = false
+              const episodio = await Episodio.create({title, url, dublado})
+              temporada.episodios.push(episodio)
+            
+            })
+          }
+          await temporada.save()
+          serie.seaseons.push(temporada)
+          await serie.save()
+        })
+        
+      });
+      
+    }
+    if(error){
+      MESSAGE_TEMPORADA.status = 'error'
+      MESSAGE_TEMPORADA.message =  error 
+    }
+  });
 }
 
 
