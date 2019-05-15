@@ -11,6 +11,7 @@ const urlFileTemporada = './temporadas/';
 const Serie = require('../models/serie');
 const Temporada = require('../models/temporada');
 const Episodio = require('../models/episodio');
+const Log = require('../models/log');
 
 const MESSAGE_SERIE = { status: '', message: 'Series salvas no banco com sucesso'};
 const MESSAGE_TEMPORADA = { status: '', message: 'Temporadas salvas no banco com sucesso'};
@@ -31,130 +32,29 @@ class ParserSeries{
   async series(req, res){
     const link = 'https://www.rjseries.com'
     const uriPage = 'https://www.rjseries.com/supernatural-assistir/'
-    prepareSerie(link)
-    //prepareTemporadas({uriPage})
+    const title = 'Supernatural'
 
-    let sec = 0
-    const time = setInterval(() => {
-      sec += 1;
-      if(MESSAGE_SERIE.status != '' || MESSAGE_TEMPORADA.status != ''){
-        clearInterval(time)
-        console.log(`Voce esperou ${sec} segundos`)
-        console.info(MESSAGE_TEMPORADA)
-        res.json(MESSAGE_TEMPORADA);
-      }
-    }, 1000);
-  }
-  
-  async getTemporadas(){
-    try {
-      let series = await Serie.find({status: false},{_id:1, titulo:1, uriPage:1}, function (err, series) {
-        if(err) 
-          console.error(error)
-        return series;
-      });
-      
-      let index = 0;
-      let time = setInterval(() => {
-          parseTemporadas(series[index], index+1);
-          index+=1
-          if(index == series.length){
-            clearInterval(time)
-            console.log(`Voce esperou ${parseInt((index/2)/60)} m: ${(index/2)%60} s`)
-          }
-      }, 500); 
-      return {message: `Temporadas salvas no banco com sucesso`};;
-    } catch (err) {
-      return err
-    }
-    
-  }
+    // deleteMany()
+    //await prepareSerie(link)
+    const series = await Serie.find({})
+    const lastSerie = series.length-1
+    let is = 0       
 
-  async getPreparar(){
-    let sec = 120
-    console.log(`Voce esperou ${sec/60} m: ${parseInt(sec%60)} s`)
-  }
-
-  async getEpisodio(episodio){
-    let episodios = new Array();
-    let index = 0;
-    let link = 'https://tuaserie.com/ep.php?cod=';
-    
-    episodio.map( episodio=>{
-      if(!episodio.dublado){
-        let ep ={};
-        ep.titulo = episodio.titulo;
-        ep.legendado = link+Base64.encode(episodio.uri);
-        episodios.push(ep);
-      }    
-    })
-
-    if(episodios.length == 0){
-      episodio.map( episodio => {
-        let ep ={};
-        ep.titulo = episodio.titulo;
-        ep.dublado = link+Base64.encode(episodio.uri);
-        episodios.push(ep);
-      })  
-    }else{
-      episodio.map( episodio => {
-      
-        if(index < episodios.length){
-          if(episodio.dublado && episodio.titulo == episodios[index].titulo){
-            episodios[index].dublado = link+Base64.encode(episodio.uri);
-            index++
-          }
+    const time = setInterval(async () => {
+      try {
+        prepareTemporadas(series[is])
+        if( is == lastSerie){
+          clearInterval(time)
         }
-      })  
-    }
+        
+        is += 1
+      } catch (error) {
+        writeLog('serie','prepare', JSON.stringify(error))
+      }
     
-    return episodios;
+    }, 1000*10);
   }
 
-  async insertSerie(serie){
-    
-    Serie.findOneAndUpdate({titulo: serie.titulo},
-      serie,
-      {upsert: true},
-      function (err, serie) {
-        if (err) console.error(error)
-        return serie;
-      }
-    ).then()
-  };
-
-  async insertTemporadas(serieId, temporadas){
-    Temporada.findOneAndUpdate({serieId: serieId},
-      {
-        serieId,
-        temporadas
-      },
-      {upsert: true},
-      function (err, temporada) {
-        if (err) console.error(error)
-        return temporada;
-      }
-    ).then()
-  };
-
-  async deleteSeriesETemporadas(){
-    const series = await Serie.deleteMany({}/*,
-      function (err, result) {
-        if (err)  
-          return err;
-        return result;
-      }*/
-    ) 
-    const temporada = await Temporada.deleteMany({}/*,
-      function (err, result) {
-        if (err)  
-          return err;
-        return result;
-      }*/
-    ) 
-    console.log(series);
-    console.log(temporada);
-  };
 
   async getImgURL(href){
     
@@ -208,100 +108,139 @@ class ParserSeries{
 }
 
 // Função para preparar as Series
-async function prepareSerie(LINK_SERIE = null){
+function prepareSerie(LINK_PAGE = null){
   MESSAGE_SERIE.status = 'successful'
   
-  if(LINK_SERIE){
-    request(LINK_SERIE, async function (error, response, body) {
-      if(response && response.statusCode == 200){
-        var $ = cheerio.load(body)
-        
-        $('ul.lista-filmes').children().each(async function(i, elem) {
-          let title = $(this).children('.titulo-box').children('h2').children('a').text()
-          let uriPage = $(this).children('div').children('h2').children('a').attr().href;
-          let posterStart = $(this).children('.capa').children('img').attr().src;
-          // let urlFileTemporada = title.replace(/\W+/g, '_');
-          const serie = {
-            title,
-            uriPage,
-            posterStart
+  if(LINK_PAGE){
+    request(LINK_PAGE, function (error, response, body) {
+      try {
+        if(response && response.statusCode == 200){
+          var $ = cheerio.load(body)
+          console.log('link: '+ LINK_PAGE)
+          $('.esquerda > ul.lista-filmes').children().each(async function(i, elem) {
+            let title = $(this).children('.titulo-box').children('h2').children('a').text()
+            let uriPage = $(this).children('.capa').children('a').attr().href;
+            let posterStart = $(this).children('.capa').children('img').attr().src;
+            // let urlFileTemporada = title.replace(/\W+/g, '_');
+            const serie = {
+              title,
+              uriPage,
+              posterStart
+            }
+            if(title != null && uriPage != null)
+              await Serie.create(serie)
+          });
+          const NEXT = $('div.navigation').children('a.next').attr() ? $('div.navigation').children('a.next').attr().href : null;
+          if(NEXT){
+            prepareSerie(NEXT)
           }
-          console.log(serie)
-          await prepareTemporadas(serie)    
-        });
-        const NEXT = $('div.navigation').children('a.next').attr() ? $('div.navigation').children('a.next').attr().href : null;
-        if(NEXT){
-          console.log('next link: '+ NEXT)
-          await prepareSerie(NEXT)
+          
         }
-      }
-      if(error){
-        MESSAGE_SERIE.status = 'error'
-        MESSAGE_SERIE.message = error
+        if(error){
+          MESSAGE_SERIE.status = 'error'
+          MESSAGE_SERIE.message = error
+          writeLog('serie','request', JSON.stringify(error))
+        }
+      } catch (err) {
+        writeLog('serie','saving', JSON.stringify(err))
       }
     });
-
+      
   }
 }
-
-// Função para preparar as Temporadas
-async function prepareTemporadas({title, uriPage, posterStart}){    
+  
+  // Função para preparar as Temporadas
+async function prepareTemporadas({ title, uriPage, posterStart }){    
   MESSAGE_TEMPORADA.status = 'successful'
   request(uriPage, async function (error, response, body) {
-    if(response && response.statusCode == 200){
-      var $ = cheerio.load(body)
-      const category = []
-      $('span.categoria-video > a').each( function(i, elem){
-        category.push($(this).text())
-      })
-      const resume = $('.esquerdavideox > .content-single > p').text()
-      resume.substring(0, resume.indexOf(' Ler mais sobre'))
-      
-      const serie = await Serie.findOneAndUpdate({ title }, { title, category, posterStart, resume }, { upsert: true })
-      $('div.tab_container').children().each(async function(i, elem) {
-        const t = i + 1
-        
-        
-        const temporada = await Temporada.findOneAndUpdate({title: `${t}ª Temporada`}, {title: `${t}ª Temporada`}, { title: 1, episodios: 1, upsert: true })
-              
-        $(this).children().each(async function(i, elem) {
-          if($(this).children().children().children('strong').text() == 'DUBLADO'){
-            $(this).children().children().children('li').each( async function(i, elem){
-              
-              const title = $(this).children('a').text() + ' - ' +$(this).children('a').attr().title.split(' - ')[1]
-              const url = $(this).children('a').attr().href
-              const dublado = true
-              const episodio = await Episodio.create({title, url, dublado})
-              temporada.episodios.push(episodio)
-            
-            })
-          }
-          if($(this).children().children().children('strong').text() == 'LEGENDADO'){
-            $(this).children().children().children('li').each( async function(i, elem){
-              
-              const title = $(this).children('a').text() + ' - ' + $(this).children('a').attr().title.split(' - ')[1]
-              const url = $(this).children('a').attr().href
-              const dublado = false
-              const episodio = await Episodio.create({title, url, dublado})
-              temporada.episodios.push(episodio)
-            
-            })
-          }
-          await temporada.save()
-          serie.seaseons.push(temporada)
-          await serie.save()
+    try{
+      if(response && response.statusCode == 200){
+        var $ = cheerio.load(body)
+        const category = []
+        $('span.categoria-video > a').each( function(i, elem){
+          category.push($(this).text())
         })
+        const resume = $('.esquerdavideox > .content-single > p').text()
+        resume.substring(0, resume.indexOf(' Ler mais sobre'))
         
-      });
+        const serie = { title, temporadas: [], category, resume, posterStart }
+
+        $('div.tab_container').children().each( function(i, elem) {
+          const t = i + 1
+          const temporada = { title: `${t}ª Temporada`, episodios: [] }
+          
+          $(this).children().each(function(i, elem) {
+            if($(this).children().children().children('strong').text() == 'DUBLADO'){
+              $(this).children().children().children('li').each(function(i, elem){
+                
+                const title = $(this).children('a').text() //+ ' - ' +$(this).children('a').attr().title.split(' - ')[1]
+                const uri = $(this).children('a').attr().href
+                const dublado = true
+                temporada.episodios.push({title, uri, dublado})
+                
+              })
+            }
+            if($(this).children().children().children('strong').text() == 'LEGENDADO'){
+              $(this).children().children().children('li').each( function(i, elem){
+                
+                const title = $(this).children('a').text() //+ ' - ' + $(this).children('a').attr().title.split(' - ')[1]
+                const uri = $(this).children('a').attr().href
+                const dublado = false
+                temporada.episodios.push({title, uri, dublado})
+                
+              })
+            }
+          })
+          serie.temporadas.push(temporada)
+          
+        });
       
-    }
-    if(error){
-      MESSAGE_TEMPORADA.status = 'error'
-      MESSAGE_TEMPORADA.message =  error 
+        let it = 0       
+        const time = setInterval(async () => {
+          try {
+            const { ops } = await Episodio.collection.insertMany(serie.temporadas[it].episodios)
+            const lastTemp = serie.temporadas.length-1
+            
+            serie.temporadas[it].episodios = ops
+            if( it == lastTemp){
+              console.log(`salvando serie ${serie.title}`)
+              const { ops } = await Temporada.collection.insertMany(serie.temporadas)
+              serie.temporadas = ops
+              await Serie.create(serie)
+              clearInterval(time)
+            }
+            
+            it += 1
+          } catch (error) {
+            writeLog('temporada','saving', JSON.stringify(error))
+          }
+        
+        }, 500);
+      }
+      if(error){
+        MESSAGE_TEMPORADA.status = 'error'
+        MESSAGE_TEMPORADA.message =  error
+        writeLog('temporada','request', JSON.stringify(error))
+      }
+    } catch (error) {
+      writeLog('temporada','prepare', JSON.stringify(error))
     }
   });
 }
 
+async function deleteMany(){
+  await Episodio.deleteMany({})
+  await Temporada.deleteMany({})
+  await Serie.deleteMany({})
+}
+
+async function writeLog(type, title, error){
+  try{
+    await Log.create({type, title, error})
+  } catch (error) {
+    writeLog(`log-${type}`,'prepare', error)
+  }
+}
 
 function writeFile(path, data){
   fs.writeFileSync(path, data,function (err) {

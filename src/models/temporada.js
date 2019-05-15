@@ -1,11 +1,7 @@
 const mongoose = require('mongoose');
 
 const TemporadaSchema = mongoose.Schema({
-    title:{
-      type: String,
-			required: true,
-			trim: true
-		},
+    title: String,
 		episodios:[{
 			type: mongoose.Schema.Types.ObjectId,
 			ref: 'Episodio'

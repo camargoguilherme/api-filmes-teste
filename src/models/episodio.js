@@ -1,12 +1,9 @@
 const mongoose = require('mongoose');
 
 const EpisodioSchema = mongoose.Schema({
-  title:{
-    type: String,
-    required: true,
-    trim: true
-  },
+  title: String,
   uri: String,
+  uriVideo: String,
   dublado: Boolean
 }, {
   timestamps: true
