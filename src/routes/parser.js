@@ -28,7 +28,7 @@ router.get('/parser/series', parserController.series);
  * @apiGroup Parse
  * @apiPermission admin
  */
-router.get('/parser/temporadas');
+router.get('/parser/temporadas', parserController.temporadas);
 
 /**
  * @api {get} /parse/preparar Teste do parse

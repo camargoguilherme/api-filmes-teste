@@ -31,11 +31,13 @@ const CONFIG_PUPPETEER = {
 class ParserSeries{
   async series(req, res){
     const link = 'https://www.rjseries.com'
-    const uriPage = 'https://www.rjseries.com/supernatural-assistir/'
-    const title = 'Supernatural'
+    await Serie.deleteMany({})
+    await prepareSerie(link)
+    res.json(MESSAGE_SERIE)
+  }
 
-    // deleteMany()
-    //await prepareSerie(link)
+  async temporadas(req, res){
+    deleteMany()
     const series = await Serie.find({})
     const lastSerie = series.length-1
     let is = 0       
@@ -51,10 +53,11 @@ class ParserSeries{
       } catch (error) {
         writeLog('serie','prepare', JSON.stringify(error))
       }
-    
+      
     }, 1000*10);
+    res.json(MESSAGE_TEMPORADA)
+    
   }
-
 
   async getImgURL(href){
     
@@ -231,7 +234,6 @@ async function prepareTemporadas({ title, uriPage, posterStart }){
 async function deleteMany(){
   await Episodio.deleteMany({})
   await Temporada.deleteMany({})
-  await Serie.deleteMany({})
 }
 
 async function writeLog(type, title, error){
