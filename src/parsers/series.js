@@ -1,4 +1,5 @@
 const request = require('request');
+const rp = require('request-promise');
 const cheerio = require('cheerio')
 const jsdom = require("jsdom");
 const { JSDOM } = jsdom; 
@@ -37,76 +38,38 @@ class ParserSeries{
   }
 
   async temporadas(req, res){
-    deleteMany()
+    //deleteMany()
     const series = await Serie.find({})
-    const lastSerie = series.length-1
-    let is = 0       
-
-    const time = setInterval(async () => {
-      try {
-        prepareTemporadas(series[is])
-        if( is == lastSerie){
-          clearInterval(time)
-        }
-        
-        is += 1
-      } catch (error) {
-        writeLog('serie','prepare', JSON.stringify(error))
-      }
-      
-    }, 1000*10);
+    
+    Promise.all(
+      series.map( serie =>{
+        prepareTemporadas(serie)
+      })
+    ).then( serie => serie)
+    
     res.json(MESSAGE_TEMPORADA)
     
   }
 
-  async getImgURL(href){
-    
-    try {
-      //let response = await fetch(href);
-      //let responseText = await response.text();
+  async episodios(req, res){
+    // const series = await Serie.find({}).populate({
+    //   path: 'temporadas',
+    //   // Get friends of friends - populate the 'friends' array for every friend
+    //   populate: { path: 'episodios' }
+    // })
 
-      responseText = JSON.parse(readFileSync('teste.html')); 
+    const episodios = await Episodio.find({referer: 'https://www.rjseries.com/the-good-doctor-online-4/'})
 
-      const dom = new JSDOM(responseText);
-      let img = parse(dom.window.document.querySelector('#home_video').innerHTML);
-      let uris = urlify(JSON.stringify(img));
-      console.log('uri img: ' + uris)
-      return uris;
-    } catch (error) {
-      console.error(error);
-    }
-  }
+    console.log(episodios[0])
 
-  async getMovieURL(href) {
-    try {
-      console.log('\ngetMovieURL')
-      console.log('href: '+href)
-      let response = await fetch(href);
-      console.log('response: '+JSON.stringify(response))
-      let responseText = await response.text();
+    prepareEpisodios(episodios[0])
 
-      console.log('responseText: '+responseText)
-
-      const dom = new JSDOM(responseText);
-      let movieUrl = parse(dom.window.document.querySelector('#preview').innerHTML);
-      let url = movieUrl[1].children[1].children[1].children[5].attributes[6].value;
-
-      
-      return url;
-    } catch (error) {
-      console.error(error);
-    }
-  }
-
-  urlify(text) {
-    //var urlRegex = /(((https?:\/\/)|(www\.))[^\s]+[(.jpg)|(.png)|(.mp4)]$)/g;
-    //var urlRegex = /(https?:\/\/[^\s]+)/g;
-    var urlRegex = /(((https?:\/\/)|(www\.))[^\s]+[^(.jpg)|(.png)|(.mp4)])/g;
-    
-    let aux = ''+ text.match(urlRegex)
-    aux = aux.substring(0,4+aux.search(/(.jpg)|(.png)|(.mp4)/g))
-    console.log(text);
-    return aux;
+    // Promise.all(
+    //   episodios.map( episodio =>{
+    //     prepareEpisodios(episodio)
+    //   })
+    // ).then( serie => serie)
+    res.json({message: 'Testando episodio'})
   }
 }
 
@@ -120,7 +83,7 @@ function prepareSerie(LINK_PAGE = null){
         if(response && response.statusCode == 200){
           var $ = cheerio.load(body)
           console.log('link: '+ LINK_PAGE)
-          $('.esquerda > ul.lista-filmes').children().each(async function(i, elem) {
+          $('.esquerda > ul.lista-filmes').children().each( function(i, elem) {
             let title = $(this).children('.titulo-box').children('h2').children('a').text()
             let uriPage = $(this).children('.capa').children('a').attr().href;
             let posterStart = $(this).children('.capa').children('img').attr().src;
@@ -131,7 +94,7 @@ function prepareSerie(LINK_PAGE = null){
               posterStart
             }
             if(title != null && uriPage != null)
-              await Serie.create(serie)
+              prepareTemporadas(serie)
           });
           const NEXT = $('div.navigation').children('a.next').attr() ? $('div.navigation').children('a.next').attr().href : null;
           if(NEXT){
@@ -153,87 +116,159 @@ function prepareSerie(LINK_PAGE = null){
 }
   
   // Função para preparar as Temporadas
-async function prepareTemporadas({ title, uriPage, posterStart }){    
+function prepareTemporadas({ title, uriPage, posterStart }){    
   MESSAGE_TEMPORADA.status = 'successful'
-  request(uriPage, async function (error, response, body) {
-    try{
-      if(response && response.statusCode == 200){
-        var $ = cheerio.load(body)
-        const category = []
-        $('span.categoria-video > a').each( function(i, elem){
-          category.push($(this).text())
-        })
-        const resume = $('.esquerdavideox > .content-single > p').text()
-        resume.substring(0, resume.indexOf(' Ler mais sobre'))
-        
-        const serie = { title, temporadas: [], category, resume, posterStart }
+    console.log(`Preparando Serie:\n Titulo: ${title}\n URL: ${uriPage}`)
+    rp(uriPage)
+    .then(function(html) {
+      var $ = cheerio.load(html)
+      const category = []
+      $('span.categoria-video > a').each( function(i, elem){
+        category.push($(this).text())
+      })
+      const resume = $('.esquerdavideox > .content-single > p').text()
+      resume.substring(0, resume.indexOf(' Ler mais sobre'))
+      
+      const serie = { title, temporadas: [], category, resume, posterStart }
 
-        $('div.tab_container').children().each( function(i, elem) {
-          const t = i + 1
-          const temporada = { title: `${t}ª Temporada`, episodios: [] }
-          
-          $(this).children().each(function(i, elem) {
-            if($(this).children().children().children('strong').text() == 'DUBLADO'){
+      $('div.tab_container').children().each( function(i, elem) {
+        const t = i + 1
+        const temporada = { title: `${t}ª Temporada`, episodios: [] }
+        
+        $(this).children().each(function(i, elem) {
+          if($(this).children().children().children('strong').text() == 'DUBLADO'){
+            if($(this).children().children().children('li').text() != 'NÃO DISPONÍVEL'){
+
               $(this).children().children().children('li').each(function(i, elem){
                 
                 const title = $(this).children('a').text() //+ ' - ' +$(this).children('a').attr().title.split(' - ')[1]
                 const uri = $(this).children('a').attr().href
                 const dublado = true
-                temporada.episodios.push({title, uri, dublado})
+                temporada.episodios.push({title, uri, dublado, referer: uriPage})
                 
               })
             }
-            if($(this).children().children().children('strong').text() == 'LEGENDADO'){
-              $(this).children().children().children('li').each( function(i, elem){
+          }
+          if($(this).children().children().children('strong').text() == 'LEGENDADO'){
+            if($(this).children().children().children('li').text() != 'NÃO DISPONÍVEL'){
+
+              $(this).children().children().children('li').each(function(i, elem){
                 
-                const title = $(this).children('a').text() //+ ' - ' + $(this).children('a').attr().title.split(' - ')[1]
+                const title = $(this).children('a').text() //+ ' - ' +$(this).children('a').attr().title.split(' - ')[1]
                 const uri = $(this).children('a').attr().href
                 const dublado = false
-                temporada.episodios.push({title, uri, dublado})
+                temporada.episodios.push({title, uri, dublado, referer: uriPage})
                 
               })
             }
-          })
-          serie.temporadas.push(temporada)
-          
-        });
-      
-        let it = 0       
-        const time = setInterval(async () => {
-          try {
-            const { ops } = await Episodio.collection.insertMany(serie.temporadas[it].episodios)
-            const lastTemp = serie.temporadas.length-1
-            
-            serie.temporadas[it].episodios = ops
-            if( it == lastTemp){
-              console.log(`salvando serie ${serie.title}`)
-              const { ops } = await Temporada.collection.insertMany(serie.temporadas)
-              serie.temporadas = ops
-              await Serie.create(serie)
-              clearInterval(time)
-            }
-            
-            it += 1
-          } catch (error) {
-            writeLog('temporada','saving', JSON.stringify(error))
           }
+        })
+        serie.temporadas.push(temporada)
         
-        }, 500);
-      }
-      if(error){
-        MESSAGE_TEMPORADA.status = 'error'
-        MESSAGE_TEMPORADA.message =  error
-        writeLog('temporada','request', JSON.stringify(error))
-      }
-    } catch (error) {
-      writeLog('temporada','prepare', JSON.stringify(error))
-    }
+      });
+      Promise.all(
+        serie.temporadas.map(function(temp, i) {
+          return Promise.all(
+            temp.episodios.map(function(ep, i) {
+              return Episodio.create(ep).then( e => e)
+            })
+          ).then( episodios => {
+            temp.episodios = episodios
+            return Temporada.create(temp).then( t => t)
+          })
+        })
+      ).then( temporadas => {
+        serie.temporadas = temporadas
+        Serie.updateOne({title: serie.title}, serie, { upsert: true}).then()
+      })
+      return serie
+    })
+    .then(function(serie) {
+      console.log(`${serie.title} conculida`);
+    })
+    .catch(function(err) {
+      //handle error
+      writeLog('temporada','prepare', JSON.stringify(err))
   });
 }
 
-async function deleteMany(){
-  await Episodio.deleteMany({})
-  await Temporada.deleteMany({})
+async function prepareEpisodios2(episodio){
+  var options = {
+    uri: episodio.uri,
+    headers: {
+      'Referer': episodio.referer
+    }
+  };
+  rp(options)
+  .then(function(html) {
+    var $ = cheerio.load(html)
+    writeFile('./series/html.html', html)
+    console.log($('.esq > .conteudo').html())
+
+  })
+  .then(function(serie) {
+    console.log(`${serie.title} conculida`);
+  })
+  .catch(function(err) {
+      //handle error
+      writeLog('temporada','prepare', JSON.stringify(err))
+  });
+}
+
+async function prepareEpisodios({ uri, referer}){
+  const browser = await puppeteer.launch({headless: false, args: ['--no-sandbox', '--disable-setuid-sandbox']});
+  try{
+    const page = await browser.newPage();
+    //await page.setRequestInterception(true)
+    await page.setExtraHTTPHeaders({
+      'Referer': referer
+    });
+    await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.181 Safari/537.36');
+    await page.goto(uri); 
+    let links = await page.evaluate(() => {
+      return document.querySelector('.esq > .conteudo').innerHTML 
+    });
+    writeFile('./series/attr.json', urlify(links))
+    // let links = [];
+    
+    // for(i = 1; i < countLinks; i++){
+    //   let player = `#player-option-${i}`;
+      
+    //   let titles = await page.evaluate(() => {
+    //     let title = [];
+    //     let div = document.getElementById("playeroptionsul");
+    //     let spans = div.getElementsByClassName("title");
+      
+    //     for(i=0;i<spans.length;i++){
+    //       title.push(spans[i].innerHTML);
+    //     }
+    //     return title;
+    //   });
+
+    //   await page.waitFor(player);
+    //   await page.click(player);
+      
+    //   await page.waitFor('div.pframe');
+    //   let link = await page.evaluate(() => {
+    //     return document.querySelector('div.pframe').innerHTML;
+    //   });
+
+    //   links.push({title: `${titles[i]}`, uri: `${urlify(link)}`});
+    //   await page.waitFor(10000);
+    //}
+
+    //browser.close();
+  } catch (error) {
+    console.error(error)
+    //browser.close();
+  }
+}
+
+function deleteMany(){
+  Promise.all(
+    [Episodio.deleteMany({}).then(),
+      Temporada.deleteMany({}).then()]
+  ).then()
 }
 
 async function writeLog(type, title, error){
@@ -269,6 +304,56 @@ function readFile(path){
     });
   }
   return data;
+}
+
+async function getImgURL(href){
+    
+  try {
+    //let response = await fetch(href);
+    //let responseText = await response.text();
+
+    responseText = JSON.parse(readFileSync('teste.html')); 
+
+    const dom = new JSDOM(responseText);
+    let img = parse(dom.window.document.querySelector('#home_video').innerHTML);
+    let uris = urlify(JSON.stringify(img));
+    console.log('uri img: ' + uris)
+    return uris;
+  } catch (error) {
+    writeLog('image-url','prepare', JSON.stringify(err))
+  }
+}
+
+async function getMovieURL(href) {
+  try {
+    console.log('\ngetMovieURL')
+    console.log('href: '+href)
+    let response = await fetch(href);
+    console.log('response: '+JSON.stringify(response))
+    let responseText = await response.text();
+
+    console.log('responseText: '+responseText)
+
+    const dom = new JSDOM(responseText);
+    let movieUrl = parse(dom.window.document.querySelector('#preview').innerHTML);
+    let url = movieUrl[1].children[1].children[1].children[5].attributes[6].value;
+
+    
+    return url;
+  } catch (error) {
+    writeLog('movie-url','prepare', JSON.stringify(err))
+  }
+}
+
+function urlify(text) {
+  //var urlRegex = /(((https?:\/\/)|(www\.))[^\s]+[(.jpg)|(.png)|(.mp4)]$)/g;
+  var urlRegex = /(https?:\/\/[^\s]+)/g;
+  //var urlRegex = /(((https?:\/\/)|(www\.))[^\s]+[^(.jpg)|(.png)|(.mp4)])/g;
+  
+  let aux = ''+ text.match(urlRegex)
+  
+  console.log(text);
+  return aux;
 }
 
 module.exports = new ParserSeries();

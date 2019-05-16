@@ -18,6 +18,11 @@ class ParserController{
     console.log('Preparando Temporadas')
     parserSeries.temporadas(req, res, next)
   };
+
+  async episodios(req, res, next){  
+    console.log('Preparando Episodios')
+    parserSeries.episodios(req, res, next)
+  };
   
 }
 

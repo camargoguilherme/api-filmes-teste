@@ -31,6 +31,13 @@ router.get('/parser/series', parserController.series);
 router.get('/parser/temporadas', parserController.temporadas);
 
 /**
+ * @api {get} /parse/series Parsear Episodios
+ * @apiGroup Parse
+ * @apiPermission admin
+ */
+router.get('/parser/episodios', parserController.episodios);
+
+/**
  * @api {get} /parse/preparar Teste do parse
  * @apiGroup Parse
  * @apiPermission admin
