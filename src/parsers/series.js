@@ -216,10 +216,9 @@ async function prepareEpisodios2(episodio){
 }
 
 async function prepareEpisodios({ uri, referer}){
-  const browser = await puppeteer.launch({headless: false, args: ['--no-sandbox', '--disable-setuid-sandbox']});
+  const browser = await puppeteer.launch({headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox']});
   try{
     const page = await browser.newPage();
-    //await page.setRequestInterception(true)
     await page.setExtraHTTPHeaders({
       'Referer': referer
     });
@@ -228,39 +227,24 @@ async function prepareEpisodios({ uri, referer}){
     let links = await page.evaluate(() => {
       return document.querySelector('.esq > .conteudo').innerHTML 
     });
-    writeFile('./series/attr.json', urlify(links))
-    // let links = [];
-    
-    // for(i = 1; i < countLinks; i++){
-    //   let player = `#player-option-${i}`;
+    const link = urlify(links).split('&')[0]
+    rp(link)
+    .then(function(html) {
+      var $ = cheerio.load(html)
+      const servers = []
+      $('.itens > a').each( function(i, elem){
+        servers.push({ server: $(this).text(), uri: urlify($(this).attr().onclick).replace(/\'/, '').replace(/\"/, '') })
+      })
+      console.log(servers)
+    })
+    .then(function(serie) {
       
-    //   let titles = await page.evaluate(() => {
-    //     let title = [];
-    //     let div = document.getElementById("playeroptionsul");
-    //     let spans = div.getElementsByClassName("title");
-      
-    //     for(i=0;i<spans.length;i++){
-    //       title.push(spans[i].innerHTML);
-    //     }
-    //     return title;
-    //   });
+    })
 
-    //   await page.waitFor(player);
-    //   await page.click(player);
-      
-    //   await page.waitFor('div.pframe');
-    //   let link = await page.evaluate(() => {
-    //     return document.querySelector('div.pframe').innerHTML;
-    //   });
-
-    //   links.push({title: `${titles[i]}`, uri: `${urlify(link)}`});
-    //   await page.waitFor(10000);
-    //}
-
-    //browser.close();
+    browser.close();
   } catch (error) {
     console.error(error)
-    //browser.close();
+    browser.close();
   }
 }
 
@@ -349,10 +333,7 @@ function urlify(text) {
   //var urlRegex = /(((https?:\/\/)|(www\.))[^\s]+[(.jpg)|(.png)|(.mp4)]$)/g;
   var urlRegex = /(https?:\/\/[^\s]+)/g;
   //var urlRegex = /(((https?:\/\/)|(www\.))[^\s]+[^(.jpg)|(.png)|(.mp4)])/g;
-  
   let aux = ''+ text.match(urlRegex)
-  
-  console.log(text);
   return aux;
 }
 
